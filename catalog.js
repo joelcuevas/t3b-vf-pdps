@@ -178,7 +178,7 @@ export const VALIDITY = "172800";
 /* Identifica ESTA variante de landing en los reportes. No viene de la URL: lo
    pone el servidor, para que no se pueda falsear desde el navegador. Cuando
    exista una segunda variante, cada página deberá declarar la suya. */
-export const UTM_CAMPAIGN = "landing_installments";
+export const UTM_CAMPAIGN = "dangler_installments";
 
 export const AVAFIN_BASE = "https://www.avafin.com.mx/tiendas";
 

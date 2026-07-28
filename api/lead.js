@@ -50,9 +50,11 @@ export default async function handler(req, res) {
 
   // Quincenas elegidas en el selector. Si llega algo fuera de la lista se cae
   // al default en vez de escribir basura en la hoja.
-  const user_input = USER_INPUTS.includes(Number(body.user_input))
-    ? Number(body.user_input)
-    : USER_INPUT_DEFAULT;
+  // body.input es el nombre anterior del campo: un navegador con la página
+  // cacheada lo sigue mandando, y sin este respaldo su selección se
+  // perdería en silencio contra el default.
+  const enviado = Number(body.user_input ?? body.input);
+  const user_input = USER_INPUTS.includes(enviado) ? enviado : USER_INPUT_DEFAULT;
 
   // utm_source es text libre que viene de la URL: se limpia antes de escribirlo.
   const utm_source = String(body.utm_source || "")

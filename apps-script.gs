@@ -55,6 +55,26 @@ const FIELDS = [
   "user_input",    // quincenas elegidas en el selector (4 / 8 / 12)
 ];
 
+// Encabezados anteriores que se siguen aceptando. Sin esto, renombrar una
+// columna hace que su dato deje de escribirse sin ningún error visible: el
+// resto de la fila entra bien y solo esa celda queda vacía.
+const LEGACY_HEADERS = {
+  user_input: ["input"],
+  utm_source: ["utm"],
+};
+
+/* Devuelve la columna de un campo, aceptando su encabezado anterior. */
+function columnFor(headers, field) {
+  let col = headers.indexOf(field);
+  if (col === -1) {
+    const aliases = LEGACY_HEADERS[field] || [];
+    for (let i = 0; i < aliases.length && col === -1; i++) {
+      col = headers.indexOf(aliases[i]);
+    }
+  }
+  return col + 1;
+}
+
 function doPost(e) {
   // Serializa las escrituras: dos leads simultáneos no pueden tomar el mismo
   // id ni la misma row.
@@ -90,15 +110,25 @@ function doPost(e) {
       product_name: String(d.product_name || ""),
       utm_source: String(d.utm_source || ""),
       utm_campaign: String(d.utm_campaign || ""),
-      user_input: d.user_input || "",
+      // d.input es el nombre anterior; un navegador con la página cacheada
+      // lo sigue mandando.
+      user_input: d.user_input || d.input || "",
     };
 
     // Escribe celda por celda buscando cada field por NOMBRE de encabezado.
     // Así puedes reordenar o insertar columnas sin romper nada.
+    const omitidos = [];
     FIELDS.forEach(function (field) {
-      const col = headers.indexOf(field) + 1;
+      const col = columnFor(headers, field);
       if (col > 0) sh.getRange(row, col).setValue(values[field]);
+      else omitidos.push(field);
     });
+
+    // Si la hoja no tiene alguna columna, el dato se pierde sin avisar.
+    // Queda en el registro de ejecuciones para poder verlo.
+    if (omitidos.length) {
+      Logger.log("Sin columna en la hoja, no se escribieron: %s", omitidos.join(", "));
+    }
 
     SpreadsheetApp.flush();
     return json({ ok: true, id: id });
