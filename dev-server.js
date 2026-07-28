@@ -23,7 +23,7 @@ import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 
 const PORT = process.env.PORT || 3000;
-const RAIZ = import.meta.dirname;
+const ROOT = import.meta.dirname;
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -54,26 +54,26 @@ const server = createServer(async (req, res) => {
 
   // --- Receptor falso que sustituye a Apps Script ------------------------
   if (url.pathname === "/__stub" && req.method === "POST") {
-    const body = JSON.parse(await leerCuerpo(req));
+    const body = JSON.parse(await readBody(req));
     const id = "L-DEV-" + String(++stubN).padStart(3, "0");
     const { token, ...lead } = body;
     console.log(`  ↳ [stub] fila que se escribiría → ${id}`, lead);
-    return responder(res, 200, { ok: true, id });
+    return respond(res, 200, { ok: true, id });
   }
 
   // --- La función de Vercel ---------------------------------------------
   if (url.pathname === "/api/lead") {
-    req.body = req.method === "POST" ? safeParse(await leerCuerpo(req)) : null;
-    return leadHandler(req, adaptarRes(res));
+    req.body = req.method === "POST" ? safeParse(await readBody(req)) : null;
+    return leadHandler(req, adaptResponse(res));
   }
 
   // --- Estáticos ---------------------------------------------------------
   const rel = url.pathname === "/" ? "/index.html" : url.pathname;
-  const ruta = join(RAIZ, normalize(rel).replace(/^(\.\.[/\\])+/, ""));
+  const filePath = join(ROOT, normalize(rel).replace(/^(\.\.[/\\])+/, ""));
   try {
-    const contenido = await readFile(ruta);
-    res.writeHead(200, { "content-type": MIME[extname(ruta)] || "application/octet-stream" });
-    res.end(contenido);
+    const content = await readFile(filePath);
+    res.writeHead(200, { "content-type": MIME[extname(filePath)] || "application/octet-stream" });
+    res.end(content);
   } catch {
     res.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
     res.end("404");
@@ -81,14 +81,14 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  const ejemplo = `http://localhost:${PORT}/?store_id=3670&product_id=30742&utm=prueba`;
+  const example = `http://localhost:${PORT}/?store_id=3670&product_id=30742&utm=prueba`;
   console.log(`\n  t3b-vf-pdps  ·  ${STUB ? "MODO STUB (no escribe en Google)" : "MODO REAL (escribe en tu hoja)"}`);
-  console.log(`\n  ${ejemplo}\n`);
+  console.log(`\n  ${example}\n`);
 });
 
 /* ---------------------------------------------------------------------- */
 
-function leerCuerpo(req) {
+function readBody(req) {
   return new Promise((resolve, reject) => {
     let d = "";
     req.on("data", (c) => (d += c));
@@ -98,16 +98,16 @@ function leerCuerpo(req) {
 }
 
 /* Le da a la respuesta de Node la forma que espera un handler de Vercel. */
-function adaptarRes(res) {
+function adaptResponse(res) {
   res.status = (code) => {
     res.statusCode = code;
     return res;
   };
-  res.json = (obj) => responder(res, res.statusCode || 200, obj);
+  res.json = (obj) => respond(res, res.statusCode || 200, obj);
   return res;
 }
 
-function responder(res, code, obj) {
+function respond(res, code, obj) {
   res.writeHead(code, { "content-type": "application/json; charset=utf-8" });
   res.end(JSON.stringify(obj));
 }

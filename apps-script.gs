@@ -18,7 +18,7 @@
 // Debe coincidir con la variable SHEET_SECRET en Vercel.
 const SECRET = "PEGA_AQUI_EL_MISMO_SECRETO_QUE_EN_VERCEL";
 
-const HOJA = "leads";
+const SHEET_NAME = "leads";
 
 // Déjalo vacío si el script está DENTRO de la hoja (Extensiones → Apps Script).
 // Si lo creaste como proyecto suelto desde script.google.com, pega aquí el id
@@ -42,7 +42,7 @@ function getSS() {
 
 // Columnas que escribe el script. Las que agregues para seguimiento
 // (estatus, notas, quién llamó…) van DESPUÉS de éstas y nunca se tocan.
-const CAMPOS = [
+const FIELDS = [
   "id",
   "created_at",
   "phone",
@@ -57,30 +57,30 @@ const CAMPOS = [
 
 function doPost(e) {
   // Serializa las escrituras: dos leads simultáneos no pueden tomar el mismo
-  // id ni la misma fila.
+  // id ni la misma row.
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(20000);
   } catch (err) {
-    return json({ ok: false, error: "ocupado" });
+    return json({ ok: false, error: "busy" });
   }
 
   try {
     const d = JSON.parse(e.postData.contents);
-    if (d.token !== SECRET) return json({ ok: false, error: "no_autorizado" });
+    if (d.token !== SECRET) return json({ ok: false, error: "unauthorized" });
 
-    const sh = getSS().getSheetByName(HOJA);
-    if (!sh) return json({ ok: false, error: "falta_hoja_" + HOJA });
+    const sh = getSS().getSheetByName(SHEET_NAME);
+    if (!sh) return json({ ok: false, error: "missing_sheet_" + SHEET_NAME });
 
     const headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
 
-    // Última fila CON id, no getLastRow(): si alguien arrastró una fórmula
+    // Última row CON id, no getLastRow(): si alguien arrastró una fórmula
     // en una columna de seguimiento, getLastRow() apuntaría demasiado abajo
     // y dejaría un hueco de filas vacías.
-    const fila = ultimaFilaConId(sh) + 1;
+    const row = lastRowWithId(sh) + 1;
 
-    const id = siguienteId(sh);
-    const valores = {
+    const id = nextId(sh);
+    const values = {
       id: id,
       created_at: new Date(),
       phone: "'" + String(d.phone || ""), // apóstrofo: conserva el 0 inicial
@@ -93,11 +93,11 @@ function doPost(e) {
       input: d.input || "",
     };
 
-    // Escribe celda por celda buscando cada campo por NOMBRE de encabezado.
+    // Escribe celda por celda buscando cada field por NOMBRE de encabezado.
     // Así puedes reordenar o insertar columnas sin romper nada.
-    CAMPOS.forEach(function (campo) {
-      const col = headers.indexOf(campo) + 1;
-      if (col > 0) sh.getRange(fila, col).setValue(valores[campo]);
+    FIELDS.forEach(function (field) {
+      const col = headers.indexOf(field) + 1;
+      if (col > 0) sh.getRange(row, col).setValue(values[field]);
     });
 
     SpreadsheetApp.flush();
@@ -109,11 +109,11 @@ function doPost(e) {
   }
 }
 
-/* Última fila que tiene algo en la columna `id`. */
-function ultimaFilaConId(sh) {
+/* Última row que tiene algo en la columna `id`. */
+function lastRowWithId(sh) {
   const headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
   const col = headers.indexOf("id") + 1;
-  if (col === 0) throw new Error("la fila 1 no tiene la columna 'id'");
+  if (col === 0) throw new Error("la row 1 no tiene la columna 'id'");
 
   const total = sh.getMaxRows();
   const vals = sh.getRange(1, col, total, 1).getValues();
@@ -124,13 +124,13 @@ function ultimaFilaConId(sh) {
 }
 
 /* Ids secuenciales legibles: L-000001, L-000002… */
-function siguienteId(sh) {
-  const fila = ultimaFilaConId(sh);
-  if (fila <= 1) return "L-000001";
+function nextId(sh) {
+  const row = lastRowWithId(sh);
+  if (row <= 1) return "L-000001";
 
   const headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
   const col = headers.indexOf("id") + 1;
-  const ultimo = String(sh.getRange(fila, col).getValue());
+  const ultimo = String(sh.getRange(row, col).getValue());
   const n = parseInt(ultimo.replace(/\D/g, ""), 10) || 0;
   return "L-" + String(n + 1).padStart(6, "0");
 }
@@ -145,25 +145,25 @@ function json(obj) {
    Ejecuta esto UNA VEZ desde el editor para crear la hoja con sus
    encabezados en el orden correcto.
    ---------------------------------------------------------------------- */
-function inicializarHoja() {
+function initSheet() {
   const ss = getSS();
   Logger.log("Hoja de cálculo: %s", ss.getName());
 
-  let sh = ss.getSheetByName(HOJA);
+  let sh = ss.getSheetByName(SHEET_NAME);
   if (sh) {
-    Logger.log("La pestaña '%s' ya existía; se actualizan sus encabezados.", HOJA);
+    Logger.log("La pestaña '%s' ya existía; se actualizan sus encabezados.", SHEET_NAME);
   } else {
-    sh = ss.insertSheet(HOJA);
-    Logger.log("Pestaña '%s' creada.", HOJA);
+    sh = ss.insertSheet(SHEET_NAME);
+    Logger.log("Pestaña '%s' creada.", SHEET_NAME);
   }
 
-  sh.getRange(1, 1, 1, CAMPOS.length).setValues([CAMPOS]).setFontWeight("bold");
+  sh.getRange(1, 1, 1, FIELDS.length).setValues([FIELDS]).setFontWeight("bold");
   sh.setFrozenRows(1);
   sh.getRange("B:B").setNumberFormat("yyyy-mm-dd hh:mm:ss");
   ss.setSpreadsheetTimeZone("America/Mexico_City");
   SpreadsheetApp.flush();
 
-  Logger.log("Listo. Columnas: %s", CAMPOS.join(" · "));
+  Logger.log("Listo. Columnas: %s", FIELDS.join(" · "));
   Logger.log("Pestañas ahora: %s",
     ss.getSheets().map(function (s) { return s.getName(); }).join(", "));
 }

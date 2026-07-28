@@ -17,7 +17,7 @@
 import { PRODUCTS, findStore, UTM_CAMPAIGN } from "../catalog.js";
 
 const TIMEOUT_MS = 8000;
-const INTENTOS = 3;
+const ATTEMPTS = 3;
 const INPUTS = [4, 8, 12];
 const INPUT_DEFAULT = 8;
 
@@ -38,21 +38,21 @@ export default async function handler(req, res) {
   // --- Validación -------------------------------------------------------
   const phone = String(body.phone || "").replace(/\D/g, "");
   if (phone.length !== 10) {
-    return res.status(400).json({ ok: false, error: "phone_invalido" });
+    return res.status(400).json({ ok: false, error: "invalid_phone" });
   }
 
   const store = findStore(body.store_id);
-  if (!store) return res.status(400).json({ ok: false, error: "store_invalida" });
+  if (!store) return res.status(400).json({ ok: false, error: "invalid_store" });
 
   const productId = String(body.product_id || "").trim();
   const product = PRODUCTS[productId];
-  if (!product) return res.status(400).json({ ok: false, error: "product_invalido" });
+  if (!product) return res.status(400).json({ ok: false, error: "invalid_product" });
 
   // Quincenas elegidas en el selector. Si llega algo fuera de la lista se cae
   // al default en vez de escribir basura en la hoja.
   const input = INPUTS.includes(Number(body.input)) ? Number(body.input) : INPUT_DEFAULT;
 
-  // utm_source es texto libre que viene de la URL: se limpia antes de escribirlo.
+  // utm_source es text libre que viene de la URL: se limpia antes de escribirlo.
   const utm_source = String(body.utm_source || "")
     .replace(/[\x00-\x1f\x7f]/g, "")
     .trim()
@@ -71,14 +71,14 @@ export default async function handler(req, res) {
   };
 
   // --- Escritura en la hoja --------------------------------------------
-  let ultimoError = null;
-  for (let intento = 1; intento <= INTENTOS; intento++) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
     try {
-      const id = await escribirEnHoja(SHEET_WEBHOOK_URL, SHEET_SECRET, lead);
+      const id = await writeToSheet(SHEET_WEBHOOK_URL, SHEET_SECRET, lead);
       return res.status(200).json({ ok: true, id });
     } catch (err) {
-      ultimoError = err;
-      if (intento < INTENTOS) await esperar(intento * 400);
+      lastError = err;
+      if (attempt < ATTEMPTS) await wait(attempt * 400);
     }
   }
 
@@ -86,15 +86,15 @@ export default async function handler(req, res) {
   // sobrevive en los logs de Vercel. Se registra completo a propósito para
   // poder rescatarlo a mano. Ver README → "Riesgo asumido".
   console.error(
-    "[lead] PERDIDO tras " + INTENTOS + " intentos:",
+    "[lead] PERDIDO tras " + ATTEMPTS + " intentos:",
     JSON.stringify(lead),
     "causa:",
-    ultimoError && ultimoError.message
+    lastError && lastError.message
   );
-  return res.status(502).json({ ok: false, error: "sheet_no_disponible" });
+  return res.status(502).json({ ok: false, error: "sheet_unavailable" });
 }
 
-async function escribirEnHoja(url, secret, lead) {
+async function writeToSheet(url, secret, lead) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   try {
@@ -106,12 +106,12 @@ async function escribirEnHoja(url, secret, lead) {
       redirect: "follow", // Apps Script redirige a script.googleusercontent.com
     });
 
-    const texto = await r.text();
-    if (!r.ok) throw new Error(`HTTP ${r.status}: ${texto.slice(0, 200)}`);
+    const text = await r.text();
+    if (!r.ok) throw new Error(`HTTP ${r.status}: ${text.slice(0, 200)}`);
 
-    const data = safeParse(texto);
+    const data = safeParse(text);
     if (!data || !data.ok) {
-      throw new Error(`respuesta inesperada: ${texto.slice(0, 200)}`);
+      throw new Error(`respuesta inesperada: ${text.slice(0, 200)}`);
     }
     return data.id;
   } finally {
@@ -127,4 +127,4 @@ function safeParse(s) {
   }
 }
 
-const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));

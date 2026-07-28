@@ -18,7 +18,7 @@
                   da error. No lo "corrijas" aunque tenga erratas o espacios
                   de más — así está registrado del otro lado.
      name       — nombre que ve el cliente
-     primerPago — primer pago quincenal en PESOS, escenario CON enganche,
+     firstPayment — primer pago quincenal en PESOS, escenario CON enganche,
                   según la lista del negocio. null = pendiente; la página no
                   inventa una cifra.
      img        — false mientras no exista img/{clave}.jpg
@@ -27,130 +27,150 @@
    ======================================================================== */
 
 export const PRODUCTS = {
-  "30553": { name: "Colchón Pillow Individual", cat: "Colchones",
-             cost: "139900", loan: "111900", primerPago: 265.88,
+  "30553": { name: "Colchón Pillow Individual", category: "Colchones",
+             cost: "139900", loan: "111900", firstPayment: 265.88,
              av: "Colchón Pillow Ind" },
 
-  "30552": { name: "Colchón Pillow Matrimonial", cat: "Colchones",
-             cost: "179900", loan: "143900", primerPago: 341.91,
+  "30552": { name: "Colchón Pillow Matrimonial", category: "Colchones",
+             cost: "179900", loan: "143900", firstPayment: 341.91,
              av: "Colchón Pillon Mat" },
 
-  "30555": { name: "Colchón Individual en Caja", cat: "Colchones",
-             cost: "199900", loan: "169900", primerPago: 403.70,
+  "30555": { name: "Colchón Individual en Caja", category: "Colchones",
+             cost: "199900", loan: "169900", firstPayment: 403.70,
              av: "Colchón Ind en Caja 17Cm 37 x 37 x 110 cms" },
 
-  "30554": { name: "Colchón Matrimonial en Caja", cat: "Colchones",
-             cost: "259900", loan: "233900", primerPago: 555.77,
+  "30554": { name: "Colchón Matrimonial en Caja", category: "Colchones",
+             cost: "259900", loan: "233900", firstPayment: 555.77,
              av: "Colchón Mat en Caja 17Cm 37 x 37 x 110 cms" },
 
-  "30782": { name: 'Asador Compact 18"', brand: "Weber", cat: "Cocina",
-             cost: "179900", loan: "143900", primerPago: 341.91,
+  "30782": { name: 'Asador Compact 18"', brand: "Weber", category: "Cocina",
+             cost: "179900", loan: "143900", firstPayment: 341.91,
              av: 'Asador Weber Compact 18"' },
 
-  "30664": { name: "Batería 20 piezas", brand: "T-fal", cat: "Cocina",
-             cost: "199900", loan: "169900", primerPago: 403.70,
+  "30664": { name: "Batería 20 piezas", brand: "T-fal", category: "Cocina",
+             cost: "199900", loan: "169900", firstPayment: 403.70,
              av: "Batería  TFAL 20 piezas," },
 
-  "30665": { name: "Batería 26 piezas", brand: "T-fal", cat: "Cocina",
-             cost: "179900", loan: "152900", primerPago: 363.30,
+  "30665": { name: "Batería 26 piezas", brand: "T-fal", category: "Cocina",
+             cost: "179900", loan: "152900", firstPayment: 363.30,
              av: "Batería TFAL 26 piezas" },
 
-  "30690": { name: "Hidrolavadora K2 Horizontal", brand: "Kärcher", cat: "Hogar",
-             cost: "149900", loan: "119900", primerPago: 293.98, badge: "Más vendido",
+  "30690": { name: "Hidrolavadora K2 Horizontal", brand: "Kärcher", category: "Hogar",
+             cost: "149900", loan: "119900", firstPayment: 293.98, badge: "Más vendido",
              av: "Karcher K2 horizontal" },
 
-  "30680": { name: 'Pantalla Smart 32" Roku', brand: "Hisense", cat: "Pantallas",
-             cost: "249900", loan: "224900", primerPago: 534.38, badge: "Más vendido",
+  "30680": { name: 'Pantalla Smart 32" Roku', brand: "Hisense", category: "Pantallas",
+             cost: "249900", loan: "224900", firstPayment: 534.38, badge: "Más vendido",
              av: 'Pantalla Smart 32" Hisense Roku' },
 
-  "30742": { name: "Horno de Microondas Panasonic 1.3 ft³ Negro", brand: "Panasonic", cat: "Cocina",
-             cost: "219900", loan: "191300", primerPago: 454.54, badge: "Más vendido",
+  "30742": { name: "Horno de Microondas Panasonic 1.3 ft³ Negro", brand: "Panasonic", category: "Cocina",
+             cost: "219900", loan: "191300", firstPayment: 454.54, badge: "Más vendido",
              av: "Horno de Microondas Panasonic 1.3 ft ",
-             specs: [{ icono: "rayo", texto: "1100 W" },
-                     { icono: "caja", texto: "1.3 ft³ · 36.8 L" },
-                     { icono: "color", texto: "Negro espejo" }] },
+             specs: [{ icon: "bolt", text: "1100 W" },
+                     { icon: "box", text: "1.3 ft³ · 36.8 L" },
+                     { icon: "color", text: "Negro espejo" }] },
 
-  "30743": { name: 'ONE BODY 15"', brand: "STF", cat: "Cómputo",
-             cost: "269900", loan: "229400", primerPago: 545.07,
+  "30743": { name: 'ONE BODY 15"', brand: "STF", category: "Cómputo",
+             cost: "269900", loan: "229400", firstPayment: 545.07,
              av: 'ONE BODY 15" STF' },
 
-  "30688": { name: "Generador de Vapor Express Essential", brand: "T-fal", cat: "Hogar",
-             cost: "179900", loan: "152900", primerPago: 363.30,
+  "30688": { name: "Generador de Vapor Express Essential", brand: "T-fal", category: "Hogar",
+             cost: "179900", loan: "152900", firstPayment: 363.30,
              av: "Express Essential Blue" },
 
-  "30744": { name: "Refrigerador 7.3 pies", brand: "White Westinghouse", cat: "Línea blanca",
-             cost: "659900", loan: "626900", primerPago: 1489.59,
+  "30744": { name: "Refrigerador 7.3 pies", brand: "White Westinghouse", category: "Línea blanca",
+             cost: "659900", loan: "626900", firstPayment: 1489.59,
              av: "Refrigerador 7.3 pies White Westinghouse" },
 
-  "27385": { name: "Lavadora Semiautomática 15 kg", brand: "White Westinghouse", cat: "Línea blanca",
-             cost: "399900", loan: "359900", primerPago: 855.16,
+  "27385": { name: "Lavadora Semiautomática 15 kg", brand: "White Westinghouse", category: "Línea blanca",
+             cost: "399900", loan: "359900", firstPayment: 855.16,
              av: "Lavadora Semiautomática White Westinghouse 15Kg" },
 
-  "30466": { name: "Estufa 4 quemadores a gas", brand: "Acros", cat: "Línea blanca",
-             cost: "399900", loan: "359900", primerPago: 855.16,
+  "30466": { name: "Estufa 4 quemadores a gas", brand: "Acros", category: "Línea blanca",
+             cost: "399900", loan: "359900", firstPayment: 855.16,
              av: "Estufa Acros 4 quemadores a gas" },
 
-  "29744": { name: "Bicicleta Eléctrica", cat: "Transporte",
-             cost: "599900", loan: "539900", primerPago: 1282.86, badge: "Nuevo",
+  "29744": { name: "Bicicleta Eléctrica", category: "Transporte",
+             cost: "599900", loan: "539900", firstPayment: 1282.86, badge: "Nuevo",
              av: "BICICLETA ELECTRICA" },
 
-  "31007": { name: "Hielera con llantas 47 latas 57 L", brand: "Coleman", cat: "Hogar",
-             cost: "159900", loan: "143900", primerPago: 341.91, badge: "Nuevo",
+  "31007": { name: "Hielera con llantas 47 latas 57 L", brand: "Coleman", category: "Hogar",
+             cost: "159900", loan: "143900", firstPayment: 341.91, badge: "Nuevo",
              av: "HIELERA CON LLANTAS 47 LATAS 57L COLEMAN" },
 
-  "31336": { name: 'Pantalla Smart 32"', brand: "Hisense", cat: "Pantallas",
-             cost: "249900", loan: "224900", primerPago: 534.38, badge: "Más vendido",
+  "31336": { name: 'Pantalla Smart 32"', brand: "Hisense", category: "Pantallas",
+             cost: "249900", loan: "224900", firstPayment: 534.38, badge: "Más vendido",
              av: 'PANTALLA HISENSE SMART 32"' },
 
-  "30995": { name: "Freidora Digital 7.5 L", brand: "Oster", cat: "Cocina",
-             cost: "149900", loan: "134900", primerPago: 210.53, badge: "Nuevo",
+  "30995": { name: "Freidora Digital 7.5 L", brand: "Oster", category: "Cocina",
+             cost: "149900", loan: "134900", firstPayment: 210.53, badge: "Nuevo",
              av: "FREIDORA DIGITAL 7.5L OSTER" },
 
-  "30996": { name: "Asador Smokey Joe", brand: "Weber", cat: "Cocina",
-             cost: "159900", loan: "143900", primerPago: 341.91, badge: "Nuevo",
+  "30996": { name: "Asador Smokey Joe", brand: "Weber", category: "Cocina",
+             cost: "159900", loan: "143900", firstPayment: 341.91, badge: "Nuevo",
              av: "ASADOR WEBER SMOKEY JOE" },
 
-  "31361": { name: "Multiestilizador 6 pzas", brand: "UNIQ", cat: "Hogar",
-             cost: "279900", loan: "251900", primerPago: 598.54, badge: "Nuevo",
+  "31361": { name: "Multiestilizador 6 pzas", brand: "UNIQ", category: "Hogar",
+             cost: "279900", loan: "251900", firstPayment: 598.54, badge: "Nuevo",
              av: "MULTIESTILIZADOR UNIQ 6 PCS" },
 
   /* --- Pendientes: falta primer pago del negocio y falta foto. Ver README. --- */
 
-  "31618": { name: "Horno Microondas 1.5 ft³", cat: "Cocina",
-             cost: "249900", loan: "224900", primerPago: null, img: false,
+  "31618": { name: "Horno Microondas 1.5 ft³", category: "Cocina",
+             cost: "249900", loan: "224900", firstPayment: null, img: false,
              av: "JUNS26 Horno Micro 1.5 CMKT" },
 
-  "31619": { name: "Frigobar 1.7 Acero", cat: "Línea blanca",
-             cost: "199900", loan: "179900", primerPago: null, img: false,
+  "31619": { name: "Frigobar 1.7 Acero", category: "Línea blanca",
+             cost: "199900", loan: "179900", firstPayment: null, img: false,
              av: "JUNS26 Frigobar 1.7 Acero" },
 
-  "32275": { name: 'Pantalla 43" Roku Frameless', cat: "Pantallas",
-             cost: "369900", loan: "332900", primerPago: null, img: false, badge: "Nuevo",
+  "32275": { name: 'Pantalla 43" Roku Frameless', category: "Pantallas",
+             cost: "369900", loan: "332900", firstPayment: null, img: false, badge: "Nuevo",
              av: 'Pantalla 43" JV Roku Frameless' },
 
-  "32633": { name: "Curl Secret Rizador", cat: "Hogar",
-             cost: "159900", loan: "143900", primerPago: null, img: false, badge: "Nuevo",
+  "32633": { name: "Curl Secret Rizador", category: "Hogar",
+             cost: "159900", loan: "143900", firstPayment: null, img: false, badge: "Nuevo",
              av: "Curl Secret Rizador" },
 
-  "27386": { name: "Refrigerador 7.3 pies WWH", brand: "White Westinghouse", cat: "Línea blanca",
-             cost: "449900", loan: "404900", primerPago: null, img: false, badge: "Nuevo",
+  "27386": { name: "Refrigerador 7.3 pies WWH", brand: "White Westinghouse", category: "Línea blanca",
+             cost: "449900", loan: "404900", firstPayment: null, img: false, badge: "Nuevo",
              av: "Refrigerador 7.3 pies WWH" },
 };
 
-/* Espejo de STORES en create_store_full_setup.py. */
+/* -------------------------------------------------------------------------
+   Padrón oficial de tiendas.
+
+     code — id oficial; es lo que se manda a avafin como store_name
+     slug — nombre oficial, sin espacios; es el prefijo de los short links
+            de short.io y se acepta como store_id en la URL
+     name — cómo se le muestra al cliente
+
+   Ojo: create_store_full_setup.py todavía solo conoce 8 de estas 17, y una
+   de las suyas —3330 SanBernabe2— no está en el padrón oficial (aquí es
+   888 Sanbernabe). Hay que homologar ese script también.
+   ---------------------------------------------------------------------- */
 export const STORES = [
-  { code: "3670", slug: "PlazaExhibimex",   name: "Exhibimex" },
-  { code: "1869", slug: "Tulyehualco5",     name: "Tulyehualco 5" },
-  { code: "1960", slug: "Cisnes",           name: "Cisnes" },
-  { code: "3330", slug: "SanBernabe2",      name: "San Bernabé 2" },
+  { code: "3670", slug: "PlazaExhibimex",   name: "Plaza Exhibimex" },
   { code: "1931", slug: "Tetiz",            name: "Tetiz" },
-  { code: "3471", slug: "Queretaro",        name: "Querétaro" },
   { code: "1955", slug: "Postes",           name: "Postes" },
+  { code: "1960", slug: "Cisnes",           name: "Cisnes" },
+  { code: "1869", slug: "Tulyehualco5",     name: "Tulyehualco 5" },
+  { code: "3471", slug: "Queretaro",        name: "Querétaro" },
   { code: "2635", slug: "GaleanaNativitas", name: "Galeana Nativitas" },
+  { code: "2918", slug: "CaminoReal3",      name: "Camino Real 3" },
+  { code: "2613", slug: "TlahuacCentro",    name: "Tláhuac Centro" },
+  { code: "3343", slug: "LaMonera",         name: "La Monera" },
+  { code: "2145", slug: "AvMexicoLaCruz",   name: "Av. México La Cruz" },
+  { code: "1129", slug: "Larondalla",       name: "La Rondalla" },
+  { code: "2499", slug: "Tulyehualco6",     name: "Tulyehualco 6" },
+  { code: "1322", slug: "LaTurba2",         name: "La Turba 2" },
+  { code: "2758", slug: "Muyuguarda",       name: "Muyuguarda" },
+  { code: "829",  slug: "Culhuacan",        name: "Culhuacán" },
+  { code: "888",  slug: "Sanbernabe",       name: "San Bernabé" },
 ];
 
 /* Tetiz y Postes no cobran enganche: allá loan_amount == product_cost. */
-export const SIN_ENGANCHE = new Set(["1931", "1955"]);
+export const NO_DOWN_PAYMENT_STORES = new Set(["1931", "1955"]);
 
 /* Constante de create_store_full_setup.py (segundos de vigencia del link). */
 export const VALIDITY = "172800";
@@ -174,13 +194,13 @@ export function findStore(raw) {
 
 /* ---- Derivados de cost/loan, en pesos ---- */
 
-export const contado = (p) => Number(p.cost) / 100;
+export const cashPrice = (p) => Number(p.cost) / 100;
 
 /* Monto que se financia. En las tiendas sin enganche se financia todo. */
 export const loanAmount = (p, store) =>
-  SIN_ENGANCHE.has(store.code) ? p.cost : p.loan;
+  NO_DOWN_PAYMENT_STORES.has(store.code) ? p.cost : p.loan;
 
-export const enganche = (p, store) =>
+export const downPayment = (p, store) =>
   (Number(p.cost) - Number(loanAmount(p, store))) / 100;
 
 /* -------------------------------------------------------------------------

@@ -51,7 +51,7 @@ navegación.
 
 | Parámetro | Obligatorio | Formato |
 |---|---|---|
-| `store_id` | sí | código (`3670`) o slug (`PlazaExhibimex`), indistinto |
+| `store_id` | sí | id oficial (`3670`) o nombre oficial (`PlazaExhibimex`), indistinto |
 | `product_id` | sí | clave del producto (`30742`) |
 | `utm_source` | no | texto libre, se recorta a 120 caracteres |
 
@@ -104,7 +104,7 @@ una bitácora. Para ver el número de contacto sin perder filas:
 1. Crear la hoja, privada, compartida solo con quien deba verla.
 2. Extensiones → Apps Script → pegar `apps-script.gs`.
 3. Poner el valor de `SECRET` en el script.
-4. Ejecutar `inicializarHoja()` una vez (crea la pestaña `leads`, encabezados,
+4. Ejecutar `initSheet()` una vez (crea la pestaña `leads`, encabezados,
    formato de fecha y zona horaria).
 5. Implementar → Nueva implementación → Aplicación web:
    *Ejecutar como:* **Yo** · *Quién tiene acceso:* **Cualquier persona**.
@@ -133,7 +133,7 @@ Sin build step: estático + una función en `api/`.
 `qrs/create_store_full_setup.py`. Falta:
 
 - **Primer pago de 5 productos** (`32275`, `32633`, `27386`, `31618`, `31619`):
-  `primerPago: null`. La página muestra "Consulta tu pago quincenal en tienda"
+  `firstPayment: null`. La página muestra "Consulta tu pago quincenal en tienda"
   en vez de inventar una cifra. `31619` ya tiene QR vivo en Exhibimex y Cisnes,
   así que va a recibir tráfico real.
 - **Fotos de esos mismos 5**: falta `img/{clave}.jpg`, se muestra un
@@ -220,5 +220,11 @@ for c,_ in g['STORES']:
       'validity':g['VALIDITY'],'store_name':c}))" | sort > /tmp/a
 node -e "import('./catalog.js').then(m=>console.log(m.STORES.flatMap(s=>
   Object.entries(m.PRODUCTS).map(([id,p])=>m.avafinUrl(id,p,s))).join('\n')))" | sort > /tmp/b
-diff /tmp/a /tmp/b && echo "las 208 URLs coinciden"
+comm -23 /tmp/a /tmp/b   # vacío = ninguna URL del script cambió
 ```
+
+`catalog.js` tiene 17 tiendas y el script todavía 8, así que el catálogo genera
+más URLs de las que el script conoce; lo que importa es que **ninguna de las
+del script falte**. La única excepción esperada hoy son las 26 de
+`3330 SanBernabe2`, tienda que el padrón oficial no incluye (ahí es
+`888 Sanbernabe`).

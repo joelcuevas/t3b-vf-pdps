@@ -64,14 +64,14 @@
     width: 48px; height: 48px;
   }
   .gallery .photo { width: 100%; max-width: 340px; height: auto; mix-blend-mode: multiply; }
-  .gallery .sinfoto {
+  .gallery .no-photo {
     font-size: 12.5px; font-weight: 800; letter-spacing: 0.1em;
     text-transform: uppercase; color: #b3bac6; text-align: center;
   }
   /* Enlace inválido: no hay producto que mostrar, así que la galería se
      reduce a la franja del logo en vez de dejar un hueco gris enorme. */
   /* 110px = top del logo (16) + su alto (48) + el traslape de la ficha (22). */
-  .gallery.vacia { min-height: 110px; }
+  .gallery.empty { min-height: 110px; }
 
   /* ===== FICHA ===== */
   .sheet {
@@ -87,8 +87,8 @@
     font-size: 25px; font-weight: 800; line-height: 1.12; letter-spacing: -0.022em;
     max-width: 620px;
   }
-  .clave { font-size: 12px; font-weight: 700; color: var(--ink-3); white-space: nowrap; padding-top: 4px; }
-  .clave b { color: var(--ink-2); }
+  .sku { font-size: 12px; font-weight: 700; color: var(--ink-3); white-space: nowrap; padding-top: 4px; }
+  .sku b { color: var(--ink-2); }
 
   .specs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
   .spec {
@@ -114,39 +114,39 @@
     font-size: 46px; font-weight: 800; letter-spacing: -0.04em; line-height: 0.92;
   }
   .price-main .unit { font-size: 17px; font-weight: 600; color: var(--ink-2); letter-spacing: -0.02em; }
-  .price-main.nd .amount { font-size: 20px; line-height: 1.25; letter-spacing: -0.02em; }
+  .price-main.pending .amount { font-size: 20px; line-height: 1.25; letter-spacing: -0.02em; }
 
   .price-side {
     text-align: right; padding-left: 14px; border-left: 1px solid var(--line);
     align-self: stretch; display: flex; flex-direction: column; justify-content: flex-end; gap: 9px;
     flex-shrink: 0;
   }
-  .price-side .lbl {
+  .price-side .label {
     font-size: 9.5px; font-weight: 800; letter-spacing: 0.07em;
     color: var(--ink-3); text-transform: uppercase;
   }
   .price-side .val { font-size: 20px; font-weight: 800; letter-spacing: -0.025em; line-height: 1; }
   .price-side .val.sm { font-size: 16px; color: var(--ink-2); }
-  .price-side .val.libre { color: #16a34a; font-size: 15px; }
+  .price-side .val.free { color: #16a34a; font-size: 15px; }
 
   hr { border: 0; border-top: 1px solid var(--line); margin: 22px 0 20px; }
 
   /* ===== PLAZOS ===== */
-  .q { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 12px; }
-  .plazos {
+  .question { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 12px; }
+  .terms {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px;
     background: #f2f4f7; padding: 7px; border-radius: 15px;
   }
-  .plazo {
+  .term {
     border-radius: 11px; padding: 12px 4px 10px; text-align: center;
     background: transparent; border: 0; font-family: inherit; cursor: pointer;
     transition: background .15s;
   }
-  .plazo .n { font-size: 21px; font-weight: 800; color: var(--ink-3); letter-spacing: -0.02em; }
-  .plazo .lbl { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; color: var(--ink-3); margin-top: 1px; }
-  .plazo.on { background: var(--red); }
-  .plazo.on .n, .plazo.on .lbl { color: #fff; }
-  @media (hover: hover) { .plazo:not(.on):hover { background: #e7eaef; } }
+  .term .n { font-size: 21px; font-weight: 800; color: var(--ink-3); letter-spacing: -0.02em; }
+  .term .label { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; color: var(--ink-3); margin-top: 1px; }
+  .term.on { background: var(--red); }
+  .term.on .n, .term.on .label { color: #fff; }
+  @media (hover: hover) { .term:not(.on):hover { background: #e7eaef; } }
 
   /* ===== FORM ===== */
   .field { position: relative; margin-top: 22px; }
@@ -209,15 +209,15 @@
   .legal a { color: inherit; }
 
   /* ===== ENLACE INVÁLIDO ===== */
-  .estado { padding: 48px 22px 62px; text-align: center; }
-  .estado .icono {
+  .notice { padding: 48px 22px 62px; text-align: center; }
+  .notice .icon {
     width: 62px; height: 62px; border-radius: 50%; margin: 0 auto 20px;
     background: #f2f4f7;
     display: flex; align-items: center; justify-content: center;
   }
-  .estado .icono svg { width: 30px; height: 30px; color: var(--ink-3); }
-  .estado h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 10px; }
-  .estado p { font-size: 15px; line-height: 1.55; color: var(--ink-2); max-width: 430px; margin: 0 auto; }
+  .notice .icon svg { width: 30px; height: 30px; color: var(--ink-3); }
+  .notice h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 10px; }
+  .notice p { font-size: 15px; line-height: 1.55; color: var(--ink-2); max-width: 430px; margin: 0 auto; }
 
   [hidden] { display: none !important; }
 
@@ -226,17 +226,17 @@
      ==================================================================== */
   @media (min-width: 721px) {
     .gallery { padding: 40px 40px 32px; min-height: 540px; }
-    .gallery.vacia { min-height: 140px; }
+    .gallery.empty { min-height: 140px; }
     .badge { top: 45px; right: 32px; gap: 10px; padding: 13px 24px; font-size: 17px; }
     .badge::before { width: 8px; height: 8px; }
     .brandmark { top: 30px; left: 32px; width: 76px; height: 76px; }
     .gallery .photo { width: 620px; max-width: 100%; }
-    .gallery .sinfoto { font-size: 15px; }
+    .gallery .no-photo { font-size: 15px; }
 
     .sheet { border-radius: 34px 34px 0 0; margin-top: -26px; padding: 42px 44px 34px; }
     .head { gap: 28px; }
     h1 { font-size: 42px; line-height: 1.1; letter-spacing: -0.028em; }
-    .clave { font-size: 15px; padding-top: 8px; }
+    .sku { font-size: 15px; padding-top: 8px; }
 
     .specs { gap: 8px; margin-top: 18px; }
     .spec { padding: 8px 14px; font-size: 15px; gap: 7px; }
@@ -247,21 +247,21 @@
     .price-main .row { gap: 10px; }
     .price-main .amount { font-size: 76px; }
     .price-main .unit { font-size: 26px; }
-    .price-main.nd .amount { font-size: 30px; }
+    .price-main.pending .amount { font-size: 30px; }
 
     .price-side { padding-left: 26px; gap: 12px; }
-    .price-side .lbl { font-size: 12px; letter-spacing: 0.09em; }
+    .price-side .label { font-size: 12px; letter-spacing: 0.09em; }
     .price-side .val { font-size: 30px; }
     .price-side .val.sm { font-size: 22px; }
-    .price-side .val.libre { font-size: 20px; }
+    .price-side .val.free { font-size: 20px; }
 
     hr { margin: 28px 0 24px; }
 
-    .q { font-size: 21px; margin-bottom: 14px; }
-    .plazos { gap: 10px; padding: 10px; border-radius: 18px; }
-    .plazo { padding: 15px 8px 13px; border-radius: 13px; }
-    .plazo .n { font-size: 26px; }
-    .plazo .lbl { font-size: 12px; letter-spacing: 0.08em; }
+    .question { font-size: 21px; margin-bottom: 14px; }
+    .terms { gap: 10px; padding: 10px; border-radius: 18px; }
+    .term { padding: 15px 8px 13px; border-radius: 13px; }
+    .term .n { font-size: 26px; }
+    .term .label { font-size: 12px; letter-spacing: 0.08em; }
 
     .field { margin-top: 26px; }
     .field .legend { top: -8px; left: 22px; padding: 0 8px; font-size: 14px; }
@@ -279,11 +279,11 @@
 
     .legal { font-size: 11.5px; }
 
-    .estado { padding: 70px 44px 84px; }
-    .estado .icono { width: 78px; height: 78px; margin-bottom: 24px; }
-    .estado .icono svg { width: 38px; height: 38px; }
-    .estado h2 { font-size: 30px; margin-bottom: 12px; }
-    .estado p { font-size: 17px; }
+    .notice { padding: 70px 44px 84px; }
+    .notice .icon { width: 78px; height: 78px; margin-bottom: 24px; }
+    .notice .icon svg { width: 38px; height: 38px; }
+    .notice h2 { font-size: 30px; margin-bottom: 12px; }
+    .notice p { font-size: 17px; }
   }
 </style>
 </head>
@@ -294,29 +294,29 @@
   <section class="gallery">
     <img class="brandmark" src="img/brandmark.png" alt="Tiendas 3B" />
     <div class="badge" id="badge" hidden></div>
-    <div id="foto"></div>
+    <div id="photoBox"></div>
   </section>
 
   <!-- ===== FICHA ===== -->
-  <section class="sheet" id="ficha">
+  <section class="sheet" id="productView">
     <div class="head">
-      <h1 id="pNombre"></h1>
-      <div class="clave">Clave: <b id="pClave"></b></div>
+      <h1 id="productName"></h1>
+      <div class="sku">Clave: <b id="productSku"></b></div>
     </div>
 
     <div class="specs" id="specs"></div>
 
     <!-- ===== PRECIO ===== -->
     <div class="price">
-      <div class="price-main" id="precioMain"></div>
+      <div class="price-main" id="priceMainEl"></div>
       <div class="price-side">
         <div>
-          <div class="lbl">Enganche</div>
-          <div class="val sm" id="vEnganche"></div>
+          <div class="label">Enganche</div>
+          <div class="val sm" id="downPaymentValue"></div>
         </div>
         <div>
-          <div class="lbl">Precio de contado</div>
-          <div class="val" id="vContado"></div>
+          <div class="label">Precio de contado</div>
+          <div class="val" id="cashPriceValue"></div>
         </div>
       </div>
     </div>
@@ -324,20 +324,20 @@
     <hr />
 
     <!-- ===== PLAZOS ===== -->
-    <div class="q">¿En cuántas quincenas quieres pagar?</div>
-    <div class="plazos" id="plazos">
-      <button type="button" class="plazo" data-plazo="4"><div class="n">4</div><div class="lbl">QUINCENAS</div></button>
-      <button type="button" class="plazo on" data-plazo="8"><div class="n">8</div><div class="lbl">QUINCENAS</div></button>
-      <button type="button" class="plazo" data-plazo="12"><div class="n">12</div><div class="lbl">QUINCENAS</div></button>
+    <div class="question">¿En cuántas quincenas quieres pagar?</div>
+    <div class="terms" id="terms">
+      <button type="button" class="term" data-term="4"><div class="n">4</div><div class="label">QUINCENAS</div></button>
+      <button type="button" class="term on" data-term="8"><div class="n">8</div><div class="label">QUINCENAS</div></button>
+      <button type="button" class="term" data-term="12"><div class="n">12</div><div class="label">QUINCENAS</div></button>
     </div>
 
     <!-- ===== FORM ===== -->
     <form id="form" novalidate>
       <div class="field">
         <div class="legend">Tu número de celular</div>
-        <div class="box" id="caja">
+        <div class="box" id="phoneBox">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg>
-          <input id="tel" type="tel" inputmode="numeric" autocomplete="tel-national"
+          <input id="phone" type="phoneInput" inputmode="numeric" autocomplete="phoneInput-national"
                  maxlength="12" placeholder="55 1234 5678" aria-label="Tu número de celular" />
         </div>
       </div>
@@ -375,8 +375,8 @@
   </section>
 
   <!-- ===== ENLACE INVÁLIDO ===== -->
-  <section class="sheet estado" id="invalido" hidden>
-    <div class="icono">
+  <section class="sheet notice" id="invalidLink" hidden>
+    <div class="icon">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>
     </div>
     <h2>Enlace no válido</h2>
@@ -386,22 +386,22 @@
 </div>
 
 <script type="module">
-import { PRODUCTS, SIN_ENGANCHE, findStore, contado, enganche, avafinUrl } from "./catalog.js";
+import { PRODUCTS, NO_DOWN_PAYMENT_STORES, findStore, cashPrice, downPayment, avafinUrl } from "./catalog.js";
 
 /* Iconos de los chips, tomados del mock. */
-const ICONOS = {
-  rayo:   '<path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/>',
-  caja:   '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M15 5v14"/>',
-  color:  '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18"/>',
-  tienda: '<path d="M4 20h16M6 20V9M18 20V9M3 9l9-5 9 5"/>',
-  marca:  '<path d="M20.6 13.4 12 4.8V2H4v8h2.8l8.6 8.6a2 2 0 0 0 2.8 0l2.4-2.4a2 2 0 0 0 0-2.8z"/><circle cx="7.5" cy="6.5" r="1"/>',
+const ICONS = {
+  bolt:    '<path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/>',
+  box:     '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M15 5v14"/>',
+  color:   '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18"/>',
+  store:   '<path d="M4 20h16M6 20V9M18 20V9M3 9l9-5 9 5"/>',
+  brand:   '<path d="M20.6 13.4 12 4.8V2H4v8h2.8l8.6 8.6a2 2 0 0 0 2.8 0l2.4-2.4a2 2 0 0 0 0-2.8z"/><circle cx="7.5" cy="6.5" r="1"/>',
 };
 
-const chip = (icono, texto) => `
+const chip = (icon, text) => `
   <div class="spec">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-         stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ICONOS[icono] || ICONOS.caja}</svg>
-    ${texto}
+         stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ICONS[icon] || ICONS.box}</svg>
+    ${text}
   </div>`;
 
 const fmt = (n) => "$" + Number(n).toLocaleString("es-MX", { maximumFractionDigits: 0 });
@@ -419,29 +419,29 @@ const product = PRODUCTS[rawProduct];
 let input = 8;
 
 if (!store || !product) {
-  document.getElementById("ficha").hidden = true;
-  document.getElementById("invalido").hidden = false;
-  document.querySelector(".gallery").classList.add("vacia");
+  document.getElementById("productView").hidden = true;
+  document.getElementById("invalidLink").hidden = false;
+  document.querySelector(".gallery").classList.add("empty");
 } else {
   render();
 }
 
 function render() {
-  const sinEnganche = SIN_ENGANCHE.has(store.code);
+  const noDownPayment = NO_DOWN_PAYMENT_STORES.has(store.code);
 
   document.title = `${product.name} — Tiendas 3B ${store.name}`;
 
   /* --- Galería --- */
-  const foto = document.getElementById("foto");
+  const photoBox = document.getElementById("photoBox");
   if (product.img === false) {
-    foto.innerHTML = `<div class="sinfoto">${product.cat}</div>`;
+    photoBox.innerHTML = `<div class="no-photo">${product.category}</div>`;
   } else {
     const im = document.createElement("img");
     im.className = "photo";
     im.src = `img/${rawProduct}.jpg`;
     im.alt = product.name;
-    im.onerror = () => { foto.innerHTML = `<div class="sinfoto">${product.cat}</div>`; };
-    foto.appendChild(im);
+    im.onerror = () => { photoBox.innerHTML = `<div class="no-photo">${product.category}</div>`; };
+    photoBox.appendChild(im);
   }
 
   if (product.badge) {
@@ -451,84 +451,84 @@ function render() {
   }
 
   /* --- Encabezado --- */
-  document.getElementById("pNombre").textContent = product.name;
-  document.getElementById("pClave").textContent = rawProduct;
+  document.getElementById("productName").textContent = product.name;
+  document.getElementById("productSku").textContent = rawProduct;
 
   /* --- Chips ---
      specs viene del catálogo cuando existe; si no, se arman con lo que sí
      tenemos (marca y categoría). El último chip siempre nombra la tienda. */
-  const chips = (product.specs || []).map((s) => chip(s.icono, s.texto));
+  const chips = (product.specs || []).map((s) => chip(s.icon, s.text));
   if (!product.specs) {
-    if (product.brand) chips.push(chip("marca", product.brand));
-    chips.push(chip("caja", product.cat));
+    if (product.brand) chips.push(chip("brand", product.brand));
+    chips.push(chip("box", product.category));
   }
-  chips.push(chip("tienda", `Disponible en ${store.name}`));
+  chips.push(chip("store", `Disponible en ${store.name}`));
   document.getElementById("specs").innerHTML = chips.join("");
 
   /* --- Precio ---
      En Tetiz y Postes el monto financiado es mayor (loan == cost), así que
      la cifra quincenal de la lista del negocio —calculada con enganche— no
      aplica. Se omite en vez de mostrar un número que no se va a cumplir. */
-  const main = document.getElementById("precioMain");
-  const hayQuincenal = product.primerPago !== null && !sinEnganche;
-  if (hayQuincenal) {
-    main.innerHTML = `
+  const priceMain = document.getElementById("priceMainEl");
+  const showFirstPayment = product.firstPayment !== null && !noDownPayment;
+  if (showFirstPayment) {
+    priceMain.innerHTML = `
       <div class="cap">1er pago quincenal</div>
       <div class="row">
-        <div class="amount">${fmt(Math.ceil(product.primerPago))}</div>
+        <div class="amount">${fmt(Math.ceil(product.firstPayment))}</div>
         <div class="unit">quincenales</div>
       </div>`;
   } else {
-    main.classList.add("nd");
-    main.innerHTML = `
+    priceMain.classList.add("pending");
+    priceMain.innerHTML = `
       <div class="cap">Pago quincenal</div>
       <div class="row"><div class="amount">Te lo calculamos en tienda</div></div>`;
   }
 
-  const eng = document.getElementById("vEnganche");
-  if (sinEnganche) {
-    eng.textContent = "Sin enganche";
-    eng.classList.remove("sm");
-    eng.classList.add("libre");
+  const downPaymentEl = document.getElementById("downPaymentValue");
+  if (noDownPayment) {
+    downPaymentEl.textContent = "Sin enganche";
+    downPaymentEl.classList.remove("sm");
+    downPaymentEl.classList.add("free");
   } else {
-    eng.textContent = fmt(enganche(product, store));
+    downPaymentEl.textContent = fmt(downPayment(product, store));
   }
-  document.getElementById("vContado").textContent = fmt(contado(product));
+  document.getElementById("cashPriceValue").textContent = fmt(cashPrice(product));
 }
 
 /* ---- Plazos ---- */
-document.getElementById("plazos").addEventListener("click", (e) => {
-  const b = e.target.closest(".plazo");
+document.getElementById("terms").addEventListener("click", (e) => {
+  const b = e.target.closest(".term");
   if (!b) return;
-  document.querySelectorAll(".plazo").forEach((p) => p.classList.remove("on"));
+  document.querySelectorAll(".term").forEach((p) => p.classList.remove("on"));
   b.classList.add("on");
-  input = Number(b.dataset.plazo);
+  input = Number(b.dataset.term);
 });
 
 /* ---- Formulario ---- */
 const form = document.getElementById("form");
-const tel = document.getElementById("tel");
-const caja = document.getElementById("caja");
+const phoneInput = document.getElementById("phone");
+const phoneBox = document.getElementById("phoneBox");
 const hint = document.getElementById("hint");
 const cta = document.getElementById("cta");
 const ctaTxt = document.getElementById("ctaTxt");
 
-tel.addEventListener("input", () => {
-  const d = tel.value.replace(/\D/g, "").slice(0, 10);
-  tel.value = d.replace(/^(\d{2})(\d{0,4})(\d{0,4}).*$/, (_, a, b, c) =>
+phoneInput.addEventListener("input", () => {
+  const d = phoneInput.value.replace(/\D/g, "").slice(0, 10);
+  phoneInput.value = d.replace(/^(\d{2})(\d{0,4})(\d{0,4}).*$/, (_, a, b, c) =>
     [a, b, c].filter(Boolean).join(" ")
   );
-  if (hint.textContent) { hint.textContent = ""; caja.classList.remove("err"); }
+  if (hint.textContent) { hint.textContent = ""; phoneBox.classList.remove("err"); }
 });
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
-  const phone = tel.value.replace(/\D/g, "");
+  const phone = phoneInput.value.replace(/\D/g, "");
 
   if (phone.length !== 10) {
     hint.textContent = "Escribe tu número a 10 dígitos.";
-    caja.classList.add("err");
-    tel.focus();
+    phoneBox.classList.add("err");
+    phoneInput.focus();
     return;
   }
 
