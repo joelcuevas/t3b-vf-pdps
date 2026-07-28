@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Tiendas 3B — Paga en quincenas</title>
+<meta name="description" content="Llévate hoy lo que tu hogar necesita y paga en quincenas. Aprobación en 15 minutos, solo con tu identificación." />
+<meta name="theme-color" content="#eef0f4" />
+<meta name="robots" content="noindex" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  /* =======================================================================
+     Diseño de mockups/pdp_30742.html — mismo markup, mismas clases, mismos
+     colores. La diferencia: el mock era una hoja fija de 960px para exportar
+     a PDF, y esto es mobile-first porque el tráfico llega escaneando un QR.
+
+     Base = teléfono. El bloque @media (min-width: 721px) del final restituye
+     las medidas exactas del mock.
+     ==================================================================== */
+  :root {
+    --navy: #0a2547;
+    --red: #e3252f;
+    --ink: #14181f;
+    --ink-2: #4a5260;
+    --ink-3: #8a92a0;
+    --line: #e6e8ee;
+    --bg: #f5f6f8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: #eef0f4;
+    font-family: "Manrope", system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    -webkit-text-size-adjust: 100%;
+  }
+  .page {
+    width: 100%; max-width: 960px; margin: 0 auto; min-height: 100vh;
+    background: #fff;
+    display: flex; flex-direction: column;
+  }
+
+  /* ===== GALERÍA ===== */
+  .gallery {
+    position: relative;
+    background: #eef0f4;
+    padding: 22px 18px 30px;
+    display: grid; place-items: center;
+    min-height: min(72vw, 340px);
+  }
+  .badge {
+    position: absolute; top: 22px; right: 16px;
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--red); color: #fff;
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 11.5px; font-weight: 800; letter-spacing: 0.04em;
+  }
+  .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #fff; }
+  .brandmark {
+    position: absolute; top: 16px; left: 16px;
+    width: 48px; height: 48px;
+  }
+  .gallery .photo { width: 100%; max-width: 340px; height: auto; mix-blend-mode: multiply; }
+  .gallery .sinfoto {
+    font-size: 12.5px; font-weight: 800; letter-spacing: 0.1em;
+    text-transform: uppercase; color: #b3bac6; text-align: center;
+  }
+  /* Enlace inválido: no hay producto que mostrar, así que la galería se
+     reduce a la franja del logo en vez de dejar un hueco gris enorme. */
+  /* 110px = top del logo (16) + su alto (48) + el traslape de la ficha (22). */
+  .gallery.vacia { min-height: 110px; }
+
+  /* ===== FICHA ===== */
+  .sheet {
+    background: #fff;
+    border-radius: 24px 24px 0 0;
+    margin-top: -22px;
+    position: relative;
+    padding: 26px 18px 28px;
+    flex: 1;
+  }
+  .head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  h1 {
+    font-size: 25px; font-weight: 800; line-height: 1.12; letter-spacing: -0.022em;
+    max-width: 620px;
+  }
+  .clave { font-size: 12px; font-weight: 700; color: var(--ink-3); white-space: nowrap; padding-top: 4px; }
+  .clave b { color: var(--ink-2); }
+
+  .specs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+  .spec {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #f2f4f7; border: 1px solid var(--line);
+    padding: 7px 11px; border-radius: 9px;
+    font-size: 12.5px; font-weight: 700; color: var(--ink-2);
+  }
+  .spec svg { width: 14px; height: 14px; color: var(--navy); flex-shrink: 0; }
+
+  /* ===== PRECIO ===== */
+  .price {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 14px; margin-top: 22px;
+  }
+  .price-main { min-width: 0; }
+  .price-main .cap {
+    font-size: 13.5px; font-weight: 700; color: var(--ink-3);
+    letter-spacing: -0.01em; margin-bottom: 2px;
+  }
+  .price-main .row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .price-main .amount {
+    font-size: 46px; font-weight: 800; letter-spacing: -0.04em; line-height: 0.92;
+  }
+  .price-main .unit { font-size: 17px; font-weight: 600; color: var(--ink-2); letter-spacing: -0.02em; }
+  .price-main.nd .amount { font-size: 20px; line-height: 1.25; letter-spacing: -0.02em; }
+
+  .price-side {
+    text-align: right; padding-left: 14px; border-left: 1px solid var(--line);
+    align-self: stretch; display: flex; flex-direction: column; justify-content: flex-end; gap: 9px;
+    flex-shrink: 0;
+  }
+  .price-side .lbl {
+    font-size: 9.5px; font-weight: 800; letter-spacing: 0.07em;
+    color: var(--ink-3); text-transform: uppercase;
+  }
+  .price-side .val { font-size: 20px; font-weight: 800; letter-spacing: -0.025em; line-height: 1; }
+  .price-side .val.sm { font-size: 16px; color: var(--ink-2); }
+  .price-side .val.libre { color: #16a34a; font-size: 15px; }
+
+  hr { border: 0; border-top: 1px solid var(--line); margin: 22px 0 20px; }
+
+  /* ===== PLAZOS ===== */
+  .q { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 12px; }
+  .plazos {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px;
+    background: #f2f4f7; padding: 7px; border-radius: 15px;
+  }
+  .plazo {
+    border-radius: 11px; padding: 12px 4px 10px; text-align: center;
+    background: transparent; border: 0; font-family: inherit; cursor: pointer;
+    transition: background .15s;
+  }
+  .plazo .n { font-size: 21px; font-weight: 800; color: var(--ink-3); letter-spacing: -0.02em; }
+  .plazo .lbl { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; color: var(--ink-3); margin-top: 1px; }
+  .plazo.on { background: var(--red); }
+  .plazo.on .n, .plazo.on .lbl { color: #fff; }
+  @media (hover: hover) { .plazo:not(.on):hover { background: #e7eaef; } }
+
+  /* ===== FORM ===== */
+  .field { position: relative; margin-top: 22px; }
+  .field .legend {
+    position: absolute; top: -7px; left: 16px; background: #fff; padding: 0 7px;
+    font-size: 12.5px; font-weight: 700; color: var(--ink-2); z-index: 1;
+  }
+  .field .box {
+    display: flex; align-items: center; gap: 11px;
+    border: 1.5px solid var(--line); border-radius: 999px;
+    padding: 16px 20px;
+    transition: border-color .15s;
+  }
+  .field .box:focus-within { border-color: var(--navy); }
+  .field .box.err { border-color: var(--red); }
+  .field .box svg { width: 20px; height: 20px; color: var(--ink-3); flex-shrink: 0; }
+  .field input {
+    flex: 1; min-width: 0; border: 0; outline: 0; background: transparent;
+    font-family: inherit; color: var(--ink);
+    /* 16px es el mínimo que evita que iOS haga zoom al enfocar. */
+    font-size: 21px; font-weight: 600; letter-spacing: 0.02em;
+  }
+  .field input::placeholder { color: #b9bfca; }
+
+  .cta {
+    margin-top: 14px; width: 100%;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    background: var(--navy); color: #fff;
+    border: 0; border-radius: 999px; padding: 19px;
+    font-size: 18px; font-weight: 800; letter-spacing: -0.02em;
+    font-family: inherit; cursor: pointer;
+    transition: background .15s, transform .1s;
+  }
+  .cta svg { width: 20px; height: 20px; flex-shrink: 0; }
+  .cta:active:not(:disabled) { transform: scale(.99); }
+  .cta:disabled { opacity: .55; cursor: default; }
+  @media (hover: hover) { .cta:hover:not(:disabled) { background: #0f3160; } }
+
+  .hint {
+    color: var(--red); font-size: 12.5px; font-weight: 700;
+    margin: 9px 0 0 20px; min-height: 17px;
+  }
+
+  .trust {
+    display: flex; align-items: center; justify-content: center;
+    gap: 9px 12px; flex-wrap: wrap;
+    margin-top: 16px; font-size: 12.5px; font-weight: 700; color: var(--ink-2);
+  }
+  .trust span { display: inline-flex; align-items: center; gap: 6px; }
+  .trust svg { width: 14px; height: 14px; color: var(--navy); }
+  /* Al envolverse en dos renglones, el separador quedaba colgando al inicio
+     del segundo. En móvil basta el espaciado. */
+  .trust .sep { display: none; width: 1px; height: 13px; background: var(--line); }
+
+  .legal {
+    margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line);
+    font-size: 10.5px; line-height: 1.5; color: var(--ink-3);
+  }
+  .legal p + p { margin-top: 6px; }
+  .legal a { color: inherit; }
+
+  /* ===== ENLACE INVÁLIDO ===== */
+  .estado { padding: 48px 22px 62px; text-align: center; }
+  .estado .icono {
+    width: 62px; height: 62px; border-radius: 50%; margin: 0 auto 20px;
+    background: #f2f4f7;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .estado .icono svg { width: 30px; height: 30px; color: var(--ink-3); }
+  .estado h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 10px; }
+  .estado p { font-size: 15px; line-height: 1.55; color: var(--ink-2); max-width: 430px; margin: 0 auto; }
+
+  [hidden] { display: none !important; }
+
+  /* =======================================================================
+     ≥ 721px — las medidas exactas del mock de 960px.
+     ==================================================================== */
+  @media (min-width: 721px) {
+    .gallery { padding: 40px 40px 32px; min-height: 540px; }
+    .gallery.vacia { min-height: 140px; }
+    .badge { top: 45px; right: 32px; gap: 10px; padding: 13px 24px; font-size: 17px; }
+    .badge::before { width: 8px; height: 8px; }
+    .brandmark { top: 30px; left: 32px; width: 76px; height: 76px; }
+    .gallery .photo { width: 620px; max-width: 100%; }
+    .gallery .sinfoto { font-size: 15px; }
+
+    .sheet { border-radius: 34px 34px 0 0; margin-top: -26px; padding: 42px 44px 34px; }
+    .head { gap: 28px; }
+    h1 { font-size: 42px; line-height: 1.1; letter-spacing: -0.028em; }
+    .clave { font-size: 15px; padding-top: 8px; }
+
+    .specs { gap: 8px; margin-top: 18px; }
+    .spec { padding: 8px 14px; font-size: 15px; gap: 7px; }
+    .spec svg { width: 15px; height: 15px; }
+
+    .price { gap: 24px; margin-top: 30px; }
+    .price-main .cap { font-size: 17px; }
+    .price-main .row { gap: 10px; }
+    .price-main .amount { font-size: 76px; }
+    .price-main .unit { font-size: 26px; }
+    .price-main.nd .amount { font-size: 30px; }
+
+    .price-side { padding-left: 26px; gap: 12px; }
+    .price-side .lbl { font-size: 12px; letter-spacing: 0.09em; }
+    .price-side .val { font-size: 30px; }
+    .price-side .val.sm { font-size: 22px; }
+    .price-side .val.libre { font-size: 20px; }
+
+    hr { margin: 28px 0 24px; }
+
+    .q { font-size: 21px; margin-bottom: 14px; }
+    .plazos { gap: 10px; padding: 10px; border-radius: 18px; }
+    .plazo { padding: 15px 8px 13px; border-radius: 13px; }
+    .plazo .n { font-size: 26px; }
+    .plazo .lbl { font-size: 12px; letter-spacing: 0.08em; }
+
+    .field { margin-top: 26px; }
+    .field .legend { top: -8px; left: 22px; padding: 0 8px; font-size: 14px; }
+    .field .box { gap: 14px; padding: 22px 28px; }
+    .field .box svg { width: 24px; height: 24px; }
+    .field input { font-size: 30px; }
+    .hint { font-size: 14px; margin-left: 26px; min-height: 19px; }
+
+    .cta { margin-top: 16px; gap: 14px; padding: 26px; font-size: 26px; }
+    .cta svg { width: 26px; height: 26px; }
+
+    .trust { gap: 18px; margin-top: 18px; font-size: 15px; }
+    .trust svg { width: 16px; height: 16px; }
+    .trust .sep { display: block; height: 15px; }
+
+    .legal { font-size: 11.5px; }
+
+    .estado { padding: 70px 44px 84px; }
+    .estado .icono { width: 78px; height: 78px; margin-bottom: 24px; }
+    .estado .icono svg { width: 38px; height: 38px; }
+    .estado h2 { font-size: 30px; margin-bottom: 12px; }
+    .estado p { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ===== GALERÍA ===== -->
+  <section class="gallery">
+    <img class="brandmark" src="img/brandmark.png" alt="Tiendas 3B" />
+    <div class="badge" id="badge" hidden></div>
+    <div id="foto"></div>
+  </section>
+
+  <!-- ===== FICHA ===== -->
+  <section class="sheet" id="ficha">
+    <div class="head">
+      <h1 id="pNombre"></h1>
+      <div class="clave">Clave: <b id="pClave"></b></div>
+    </div>
+
+    <div class="specs" id="specs"></div>
+
+    <!-- ===== PRECIO ===== -->
+    <div class="price">
+      <div class="price-main" id="precioMain"></div>
+      <div class="price-side">
+        <div>
+          <div class="lbl">Enganche</div>
+          <div class="val sm" id="vEnganche"></div>
+        </div>
+        <div>
+          <div class="lbl">Precio de contado</div>
+          <div class="val" id="vContado"></div>
+        </div>
+      </div>
+    </div>
+
+    <hr />
+
+    <!-- ===== PLAZOS ===== -->
+    <div class="q">¿En cuántas quincenas quieres pagar?</div>
+    <div class="plazos" id="plazos">
+      <button type="button" class="plazo" data-plazo="4"><div class="n">4</div><div class="lbl">QUINCENAS</div></button>
+      <button type="button" class="plazo on" data-plazo="8"><div class="n">8</div><div class="lbl">QUINCENAS</div></button>
+      <button type="button" class="plazo" data-plazo="12"><div class="n">12</div><div class="lbl">QUINCENAS</div></button>
+    </div>
+
+    <!-- ===== FORM ===== -->
+    <form id="form" novalidate>
+      <div class="field">
+        <div class="legend">Tu número de celular</div>
+        <div class="box" id="caja">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg>
+          <input id="tel" type="tel" inputmode="numeric" autocomplete="tel-national"
+                 maxlength="12" placeholder="55 1234 5678" aria-label="Tu número de celular" />
+        </div>
+      </div>
+
+      <p class="hint" id="hint"></p>
+
+      <button type="submit" class="cta" id="cta">
+        <span id="ctaTxt">Consultar mi plan de pagos</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </form>
+
+    <div class="trust">
+      <span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/></svg>
+        Solo tu identificación
+      </span>
+      <i class="sep"></i>
+      <span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        Aprobación en 15 minutos
+      </span>
+      <i class="sep"></i>
+      <span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v12H3zM3 11h18"/><path d="M7 15h4"/></svg>
+        Recoge hoy en tienda
+      </span>
+    </div>
+
+    <div class="legal">
+      <p>El otorgamiento del crédito es realizado exclusiva y directamente por AVAILABLE FINANCES, S.A. DE C.V., quien actúa como un tercero independiente y ajeno a Tiendas Tres B. Para conocer condiciones completas de enganche, términos y restricciones y demás características aplicables a los créditos otorgados por AvaFin consulta directamente en <a href="https://www.avafin.mx/">https://www.avafin.mx/</a>.</p>
+      <p>Pago quincenal calculado al primer pago; este y los pagos subsecuentes pueden variar dependiendo del plazo seleccionado. Consulta la tabla de amortización al momento de aplicar al préstamo. Válido solo en Tiendas 3B seleccionadas.</p>
+      <p>Las imágenes son de referencia, el producto final puede variar. Consulta modelos y disponibilidad en tienda.</p>
+    </div>
+  </section>
+
+  <!-- ===== ENLACE INVÁLIDO ===== -->
+  <section class="sheet estado" id="invalido" hidden>
+    <div class="icono">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>
+    </div>
+    <h2>Enlace no válido</h2>
+    <p>No pudimos identificar el producto o la tienda. Escanea de nuevo el código QR en tienda o pide ayuda a un colaborador.</p>
+  </section>
+
+</div>
+
+<script type="module">
+import { PRODUCTS, SIN_ENGANCHE, findStore, contado, enganche, avafinUrl } from "./catalog.js";
+
+/* Iconos de los chips, tomados del mock. */
+const ICONOS = {
+  rayo:   '<path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/>',
+  caja:   '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M15 5v14"/>',
+  color:  '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18"/>',
+  tienda: '<path d="M4 20h16M6 20V9M18 20V9M3 9l9-5 9 5"/>',
+  marca:  '<path d="M20.6 13.4 12 4.8V2H4v8h2.8l8.6 8.6a2 2 0 0 0 2.8 0l2.4-2.4a2 2 0 0 0 0-2.8z"/><circle cx="7.5" cy="6.5" r="1"/>',
+};
+
+const chip = (icono, texto) => `
+  <div class="spec">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ICONOS[icono] || ICONOS.caja}</svg>
+    ${texto}
+  </div>`;
+
+const fmt = (n) => "$" + Number(n).toLocaleString("es-MX", { maximumFractionDigits: 0 });
+
+/* ---- Parámetros ---- */
+const qs = new URLSearchParams(location.search);
+const rawStore = (qs.get("store_id") || "").trim();
+const rawProduct = (qs.get("product_id") || "").trim();
+const utmSource = (qs.get("utm_source") || "").trim().slice(0, 120);
+
+const store = findStore(rawStore);
+const product = PRODUCTS[rawProduct];
+
+// Quincenas elegidas en el selector; el mock trae 8 preseleccionado.
+let input = 8;
+
+if (!store || !product) {
+  document.getElementById("ficha").hidden = true;
+  document.getElementById("invalido").hidden = false;
+  document.querySelector(".gallery").classList.add("vacia");
+} else {
+  render();
+}
+
+function render() {
+  const sinEnganche = SIN_ENGANCHE.has(store.code);
+
+  document.title = `${product.name} — Tiendas 3B ${store.name}`;
+
+  /* --- Galería --- */
+  const foto = document.getElementById("foto");
+  if (product.img === false) {
+    foto.innerHTML = `<div class="sinfoto">${product.cat}</div>`;
+  } else {
+    const im = document.createElement("img");
+    im.className = "photo";
+    im.src = `img/${rawProduct}.jpg`;
+    im.alt = product.name;
+    im.onerror = () => { foto.innerHTML = `<div class="sinfoto">${product.cat}</div>`; };
+    foto.appendChild(im);
+  }
+
+  if (product.badge) {
+    const b = document.getElementById("badge");
+    b.textContent = product.badge.toUpperCase();
+    b.hidden = false;
+  }
+
+  /* --- Encabezado --- */
+  document.getElementById("pNombre").textContent = product.name;
+  document.getElementById("pClave").textContent = rawProduct;
+
+  /* --- Chips ---
+     specs viene del catálogo cuando existe; si no, se arman con lo que sí
+     tenemos (marca y categoría). El último chip siempre nombra la tienda. */
+  const chips = (product.specs || []).map((s) => chip(s.icono, s.texto));
+  if (!product.specs) {
+    if (product.brand) chips.push(chip("marca", product.brand));
+    chips.push(chip("caja", product.cat));
+  }
+  chips.push(chip("tienda", `Disponible en ${store.name}`));
+  document.getElementById("specs").innerHTML = chips.join("");
+
+  /* --- Precio ---
+     En Tetiz y Postes el monto financiado es mayor (loan == cost), así que
+     la cifra quincenal de la lista del negocio —calculada con enganche— no
+     aplica. Se omite en vez de mostrar un número que no se va a cumplir. */
+  const main = document.getElementById("precioMain");
+  const hayQuincenal = product.primerPago !== null && !sinEnganche;
+  if (hayQuincenal) {
+    main.innerHTML = `
+      <div class="cap">1er pago quincenal</div>
+      <div class="row">
+        <div class="amount">${fmt(Math.ceil(product.primerPago))}</div>
+        <div class="unit">quincenales</div>
+      </div>`;
+  } else {
+    main.classList.add("nd");
+    main.innerHTML = `
+      <div class="cap">Pago quincenal</div>
+      <div class="row"><div class="amount">Te lo calculamos en tienda</div></div>`;
+  }
+
+  const eng = document.getElementById("vEnganche");
+  if (sinEnganche) {
+    eng.textContent = "Sin enganche";
+    eng.classList.remove("sm");
+    eng.classList.add("libre");
+  } else {
+    eng.textContent = fmt(enganche(product, store));
+  }
+  document.getElementById("vContado").textContent = fmt(contado(product));
+}
+
+/* ---- Plazos ---- */
+document.getElementById("plazos").addEventListener("click", (e) => {
+  const b = e.target.closest(".plazo");
+  if (!b) return;
+  document.querySelectorAll(".plazo").forEach((p) => p.classList.remove("on"));
+  b.classList.add("on");
+  input = Number(b.dataset.plazo);
+});
+
+/* ---- Formulario ---- */
+const form = document.getElementById("form");
+const tel = document.getElementById("tel");
+const caja = document.getElementById("caja");
+const hint = document.getElementById("hint");
+const cta = document.getElementById("cta");
+const ctaTxt = document.getElementById("ctaTxt");
+
+tel.addEventListener("input", () => {
+  const d = tel.value.replace(/\D/g, "").slice(0, 10);
+  tel.value = d.replace(/^(\d{2})(\d{0,4})(\d{0,4}).*$/, (_, a, b, c) =>
+    [a, b, c].filter(Boolean).join(" ")
+  );
+  if (hint.textContent) { hint.textContent = ""; caja.classList.remove("err"); }
+});
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const phone = tel.value.replace(/\D/g, "");
+
+  if (phone.length !== 10) {
+    hint.textContent = "Escribe tu número a 10 dígitos.";
+    caja.classList.add("err");
+    tel.focus();
+    return;
+  }
+
+  cta.disabled = true;
+  ctaTxt.textContent = "Un momento…";
+
+  // Se registra el lead y después se manda al cliente a avafin, que es donde
+  // realmente se solicita el préstamo.
+  //
+  // El registro NO bloquea el redirect: api/lead.js ya reintenta 3 veces y,
+  // si aun así falla, deja el lead completo en los logs de Vercel. Dejar a un
+  // cliente sin poder solicitar su crédito porque nuestra hoja de cálculo se
+  // cayó sería mucho peor que perder una fila de seguimiento.
+  try {
+    await fetch("/api/lead", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        phone,
+        store_id: store.code,
+        product_id: rawProduct,
+        utm_source: utmSource,
+        input,
+      }),
+      keepalive: true, // sobrevive a la navegación que viene enseguida
+    });
+  } catch (err) {
+    /* ignorado a propósito: ver comentario de arriba */
+  }
+
+  ctaTxt.textContent = "Redirigiendo…";
+  window.location.href = avafinUrl(rawProduct, product, store);
+});
+</script>
+</body>
+</html>

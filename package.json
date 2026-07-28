@@ -1,0 +1,11 @@
+{
+  "name": "t3b-vf-pdps",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "PDPs por tienda/producto con captura de leads a Google Sheets",
+  "scripts": {
+    "dev": "node dev-server.js",
+    "dev:real": "node --env-file=.env.local dev-server.js"
+  }
+}
