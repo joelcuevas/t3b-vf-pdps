@@ -68,7 +68,7 @@
   .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #fff; }
   .brandmark {
     position: absolute; top: 16px; left: 16px; z-index: 2;
-    width: 72px; height: 72px;
+    width: 36px; height: 36px;
   }
   /* multiply funde el fondo blanco del JPEG con el gris de la galería. Si el
      navegador lo desactiva, el rectángulo se vuelve opaco: el z-index de
@@ -80,8 +80,8 @@
   }
   /* Enlace inválido: no hay producto que mostrar, así que la galería se
      reduce a la franja del logo en vez de dejar un hueco gris enorme. */
-  /* 110px = top del logo (16) + su alto (72) + el traslape de la ficha (22). */
-  .gallery.empty { min-height: 110px; }
+  /* 74px = top del logo (16) + su alto (36) + el traslape de la ficha (22). */
+  .gallery.empty { min-height: 74px; }
 
   /* ===== FICHA ===== */
   .sheet {
@@ -180,6 +180,13 @@
   }
   .field input::placeholder { color: #b9bfca; }
 
+  .consent {
+    margin-top: 14px; text-align: center;
+    font-size: 12.5px; line-height: 1.5; color: var(--ink-3); font-weight: 600;
+  }
+  .consent a { color: var(--ink-2); text-decoration: underline; text-underline-offset: 2px; }
+  @media (hover: hover) { .consent a:hover { color: var(--navy); } }
+
   .cta {
     margin-top: 14px; width: 100%;
     display: flex; align-items: center; justify-content: center; gap: 10px;
@@ -222,12 +229,15 @@
   .modal p { font-size: 14.5px; line-height: 1.5; color: var(--ink-2); }
   .modal button {
     margin-top: 20px; width: 100%;
-    background: var(--navy); color: #fff;
+    background: var(--red); color: #fff;
     border: 0; border-radius: 999px; padding: 15px;
     font-family: inherit; font-size: 16px; font-weight: 800; letter-spacing: -0.01em;
     cursor: pointer; transition: background .15s;
   }
-  @media (hover: hover) { .modal button:hover { background: #0f3160; } }
+  @media (hover: hover) { .modal button:hover { background: #c31e27; } }
+  /* Al abrir, el foco va al botón por accesibilidad. El anillo solo debe
+     verse en navegación por teclado, no tras un toque en pantalla. */
+  .modal button:focus:not(:focus-visible) { outline: none; }
 
   .trust {
     display: flex; align-items: center; justify-content: center;
@@ -310,6 +320,7 @@
     .modal h2 { font-size: 21px; }
     .modal p { font-size: 15.5px; }
 
+    .consent { margin-top: 16px; font-size: 14px; }
     .cta { margin-top: 16px; gap: 14px; padding: 26px; font-size: 26px; }
     .cta svg { width: 26px; height: 26px; }
 
@@ -382,6 +393,13 @@
         </div>
       </div>
 
+
+      <p class="consent">
+        Consulta el
+        <a href="https://tiendas3b.com/aviso-de-privacidad/" target="_blank" rel="noopener noreferrer">Aviso de Privacidad</a>
+        y
+        <a href="terminos.html" target="_blank" rel="noopener noreferrer">Términos del Servicio</a>
+      </p>
 
       <button type="submit" class="cta" id="cta">
         <span id="ctaTxt">Consultar mi plan de pagos</span>
