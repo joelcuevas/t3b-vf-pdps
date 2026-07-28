@@ -6,6 +6,7 @@
 <title>Tiendas 3B — Paga en quincenas</title>
 <meta name="description" content="Llévate hoy lo que tu hogar necesita y paga en quincenas. Aprobación en 15 minutos, solo con tu identificación." />
 <meta name="theme-color" content="#eef0f4" />
+<meta name="color-scheme" content="light" />
 <meta name="robots" content="noindex" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -21,6 +22,12 @@
      las medidas exactas del mock.
      ==================================================================== */
   :root {
+    /* La página es de marca y siempre clara: mismo aspecto que el mock y que
+       los materiales impresos. Sin esta declaración, el forzado automático de
+       modo oscuro de Chrome en Android invierte los fondos, tumba el
+       mix-blend-mode de la foto y su fondo blanco tapa el logo. */
+    color-scheme: only light;
+
     --navy: #0a2547;
     --red: #e3252f;
     --ink: #14181f;
@@ -52,7 +59,7 @@
     min-height: min(72vw, 340px);
   }
   .badge {
-    position: absolute; top: 22px; right: 16px;
+    position: absolute; top: 22px; right: 16px; z-index: 2;
     display: inline-flex; align-items: center; gap: 6px;
     background: var(--red); color: #fff;
     padding: 8px 14px; border-radius: 999px;
@@ -60,9 +67,12 @@
   }
   .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #fff; }
   .brandmark {
-    position: absolute; top: 16px; left: 16px;
+    position: absolute; top: 16px; left: 16px; z-index: 2;
     width: 72px; height: 72px;
   }
+  /* multiply funde el fondo blanco del JPEG con el gris de la galería. Si el
+     navegador lo desactiva, el rectángulo se vuelve opaco: el z-index de
+     .brandmark garantiza que aun así el logo quede encima. */
   .gallery .photo { width: 100%; max-width: 340px; height: auto; mix-blend-mode: multiply; }
   .gallery .no-photo {
     font-size: 12.5px; font-weight: 800; letter-spacing: 0.1em;
