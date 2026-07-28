@@ -184,10 +184,40 @@
   .cta:disabled { opacity: .55; cursor: default; }
   @media (hover: hover) { .cta:hover:not(:disabled) { background: #0f3160; } }
 
-  .hint {
-    color: var(--red); font-size: 12.5px; font-weight: 700;
-    margin: 9px 0 0 20px; min-height: 17px;
+  /* ===== MODAL DE ERROR ===== */
+  .overlay {
+    position: fixed; inset: 0; z-index: 50;
+    background: rgba(10, 37, 71, 0.55);
+    display: flex; align-items: center; justify-content: center;
+    padding: 22px;
+    opacity: 0; pointer-events: none;
+    transition: opacity .18s ease;
   }
+  .overlay.open { opacity: 1; pointer-events: auto; }
+  .modal {
+    background: #fff; border-radius: 20px; padding: 30px 24px 24px;
+    width: 100%; max-width: 380px; text-align: center;
+    box-shadow: 0 18px 60px rgba(10, 37, 71, .28);
+    transform: translateY(10px) scale(.98);
+    transition: transform .18s ease;
+  }
+  .overlay.open .modal { transform: none; }
+  .modal .icon {
+    width: 54px; height: 54px; border-radius: 50%; margin: 0 auto 16px;
+    background: rgba(227, 37, 47, .10);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal .icon svg { width: 28px; height: 28px; color: var(--red); }
+  .modal h2 { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; }
+  .modal p { font-size: 14.5px; line-height: 1.5; color: var(--ink-2); }
+  .modal button {
+    margin-top: 20px; width: 100%;
+    background: var(--navy); color: #fff;
+    border: 0; border-radius: 999px; padding: 15px;
+    font-family: inherit; font-size: 16px; font-weight: 800; letter-spacing: -0.01em;
+    cursor: pointer; transition: background .15s;
+  }
+  @media (hover: hover) { .modal button:hover { background: #0f3160; } }
 
   .trust {
     display: flex; align-items: center; justify-content: center;
@@ -264,7 +294,11 @@
     .field .box { gap: 14px; padding: 22px 28px; }
     .field .box svg { width: 24px; height: 24px; }
     .field input { font-size: 30px; }
-    .hint { font-size: 14px; margin-left: 26px; min-height: 19px; }
+    .modal { padding: 34px 28px 26px; max-width: 400px; }
+    .modal .icon { width: 62px; height: 62px; }
+    .modal .icon svg { width: 32px; height: 32px; }
+    .modal h2 { font-size: 21px; }
+    .modal p { font-size: 15.5px; }
 
     .cta { margin-top: 16px; gap: 14px; padding: 26px; font-size: 26px; }
     .cta svg { width: 26px; height: 26px; }
@@ -338,7 +372,6 @@
         </div>
       </div>
 
-      <p class="hint" id="hint"></p>
 
       <button type="submit" class="cta" id="cta">
         <span id="ctaTxt">Consultar mi plan de pagos</span>
@@ -378,6 +411,18 @@
     <h2>Enlace no válido</h2>
     <p>No pudimos identificar el producto o la tienda. Escanea de nuevo el código QR en tienda o pide ayuda a un colaborador.</p>
   </section>
+
+  <!-- ===== MODAL DE ERROR ===== -->
+  <div class="overlay" id="overlay">
+    <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalMsg">
+      <div class="icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>
+      </div>
+      <h2 id="modalTitle">Revisa tu número</h2>
+      <p id="modalMsg"></p>
+      <button type="button" id="modalClose">Entendido</button>
+    </div>
+  </div>
 
 </div>
 
@@ -504,16 +549,38 @@ document.getElementById("terms").addEventListener("click", (e) => {
 const form = document.getElementById("form");
 const phoneInput = document.getElementById("phone");
 const phoneBox = document.getElementById("phoneBox");
-const hint = document.getElementById("hint");
 const cta = document.getElementById("cta");
 const ctaTxt = document.getElementById("ctaTxt");
+const overlay = document.getElementById("overlay");
+const modalMsg = document.getElementById("modalMsg");
+const modalClose = document.getElementById("modalClose");
+
+/* Los errores de validación se muestran en un modal, no debajo del input:
+   en móvil el teclado tapa esa zona y el mensaje pasaba desapercibido. */
+function showError(mensaje) {
+  modalMsg.textContent = mensaje;
+  phoneBox.classList.add("err");
+  overlay.classList.add("open");
+  modalClose.focus();
+}
+
+function hideError() {
+  overlay.classList.remove("open");
+  phoneInput.focus();
+}
+
+modalClose.addEventListener("click", hideError);
+overlay.addEventListener("click", (e) => { if (e.target === overlay) hideError(); });
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && overlay.classList.contains("open")) hideError();
+});
 
 phoneInput.addEventListener("input", () => {
   const d = phoneInput.value.replace(/\D/g, "").slice(0, 10);
   phoneInput.value = d.replace(/^(\d{2})(\d{0,4})(\d{0,4}).*$/, (_, a, b, c) =>
     [a, b, c].filter(Boolean).join(" ")
   );
-  if (hint.textContent) { hint.textContent = ""; phoneBox.classList.remove("err"); }
+  phoneBox.classList.remove("err");
 });
 
 form.addEventListener("submit", async (e) => {
@@ -521,9 +588,7 @@ form.addEventListener("submit", async (e) => {
   const phone = phoneInput.value.replace(/\D/g, "");
 
   if (phone.length !== 10) {
-    hint.textContent = "Escribe tu número a 10 dígitos.";
-    phoneBox.classList.add("err");
-    phoneInput.focus();
+    showError("Tu celular debe tener 10 dígitos, con todo y la clave de tu ciudad.");
     return;
   }
 
