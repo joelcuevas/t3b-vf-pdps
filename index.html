@@ -366,7 +366,7 @@
           <div class="val" id="downPaymentValue"></div>
         </div>
         <div>
-          <div class="label">Precio de contado</div>
+          <div class="label">Total a pagar</div>
           <div class="val" id="cashPriceValue"></div>
         </div>
       </div>
@@ -542,7 +542,7 @@ function render() {
   const showFirstPayment = product.firstPayment !== null && !noDownPayment;
   if (showFirstPayment) {
     priceMain.innerHTML = `
-      <div class="cap">1er pago desde</div>
+      <div class="cap">1er pago de 12 desde</div>
       <div class="row">
         <div class="amount">${fmt(Math.ceil(product.firstPayment))}</div>
         <div class="unit">quincenales</div>
