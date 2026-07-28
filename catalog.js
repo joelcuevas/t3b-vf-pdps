@@ -18,9 +18,6 @@
                   da error. No lo "corrijas" aunque tenga erratas o espacios
                   de más — así está registrado del otro lado.
      name       — nombre que ve el cliente
-     firstPayment — primer pago quincenal en PESOS, escenario CON enganche,
-                  según la lista del negocio. null = pendiente; la página no
-                  inventa una cifra.
      img        — false mientras no exista img/{clave}.jpg
      specs      — chips de ficha técnica del mock. Sin esto se cae a un chip
                   de marca y uno de categoría.
@@ -28,112 +25,100 @@
 
 export const PRODUCTS = {
   "30553": { name: "Colchón Pillow Individual", category: "Colchones",
-             cost: "139900", loan: "111900", firstPayment: 265.88,
-             av: "Colchón Pillow Ind" },
+             cost: "139900", loan: "111900", av: "Colchón Pillow Ind" },
 
   "30552": { name: "Colchón Pillow Matrimonial", category: "Colchones",
-             cost: "179900", loan: "143900", firstPayment: 341.91,
-             av: "Colchón Pillon Mat" },
+             cost: "179900", loan: "143900", av: "Colchón Pillon Mat" },
 
   "30555": { name: "Colchón Individual en Caja", category: "Colchones",
-             cost: "199900", loan: "169900", firstPayment: 403.70,
-             av: "Colchón Ind en Caja 17Cm 37 x 37 x 110 cms" },
+             cost: "199900", loan: "169900", av: "Colchón Ind en Caja 17Cm 37 x 37 x 110 cms" },
 
   "30554": { name: "Colchón Matrimonial en Caja", category: "Colchones",
-             cost: "259900", loan: "233900", firstPayment: 555.77,
-             av: "Colchón Mat en Caja 17Cm 37 x 37 x 110 cms" },
+             cost: "259900", loan: "233900", av: "Colchón Mat en Caja 17Cm 37 x 37 x 110 cms" },
 
   "30782": { name: 'Asador Compact 18"', brand: "Weber", category: "Cocina",
-             cost: "179900", loan: "143900", firstPayment: 341.91,
-             av: 'Asador Weber Compact 18"' },
+             cost: "179900", loan: "143900", av: 'Asador Weber Compact 18"' },
 
   "30664": { name: "Batería 20 piezas", brand: "T-fal", category: "Cocina",
-             cost: "199900", loan: "169900", firstPayment: 403.70,
-             av: "Batería  TFAL 20 piezas," },
+             cost: "199900", loan: "169900", av: "Batería  TFAL 20 piezas," },
 
   "30665": { name: "Batería 26 piezas", brand: "T-fal", category: "Cocina",
-             cost: "179900", loan: "152900", firstPayment: 363.30,
-             av: "Batería TFAL 26 piezas" },
+             cost: "179900", loan: "152900", av: "Batería TFAL 26 piezas" },
 
   "30690": { name: "Hidrolavadora K2 Horizontal", brand: "Kärcher", category: "Hogar",
-             cost: "149900", loan: "119900", firstPayment: 293.98, badge: "Más vendido",
+             cost: "149900", loan: "119900", badge: "Más vendido",
              av: "Karcher K2 horizontal" },
 
   "30680": { name: 'Pantalla Smart 32" Roku', brand: "Hisense", category: "Pantallas",
-             cost: "249900", loan: "224900", firstPayment: 534.38, badge: "Más vendido",
+             cost: "249900", loan: "224900", badge: "Más vendido",
              av: 'Pantalla Smart 32" Hisense Roku' },
 
   "30742": { name: "Horno de Microondas Panasonic 1.3 ft³ Negro", brand: "Panasonic", category: "Cocina",
-             cost: "219900", loan: "191300", firstPayment: 454.54, badge: "Más vendido",
+             cost: "219900", loan: "191300", badge: "Más vendido",
              av: "Horno de Microondas Panasonic 1.3 ft ",
              specs: [{ icon: "bolt", text: "1100 W" },
                      { icon: "box", text: "1.3 ft³ · 36.8 L" },
                      { icon: "color", text: "Negro espejo" }] },
 
   "30743": { name: 'ONE BODY 15"', brand: "STF", category: "Cómputo",
-             cost: "269900", loan: "229400", firstPayment: 545.07,
-             av: 'ONE BODY 15" STF' },
+             cost: "269900", loan: "229400", av: 'ONE BODY 15" STF' },
 
   "30688": { name: "Generador de Vapor Express Essential", brand: "T-fal", category: "Hogar",
-             cost: "179900", loan: "152900", firstPayment: 363.30,
-             av: "Express Essential Blue" },
+             cost: "179900", loan: "152900", av: "Express Essential Blue" },
 
   "30744": { name: "Refrigerador 7.3 pies", brand: "White Westinghouse", category: "Línea blanca",
-             cost: "659900", loan: "626900", firstPayment: 1489.59,
-             av: "Refrigerador 7.3 pies White Westinghouse" },
+             cost: "659900", loan: "626900", av: "Refrigerador 7.3 pies White Westinghouse" },
 
   "27385": { name: "Lavadora Semiautomática 15 kg", brand: "White Westinghouse", category: "Línea blanca",
-             cost: "399900", loan: "359900", firstPayment: 855.16,
-             av: "Lavadora Semiautomática White Westinghouse 15Kg" },
+             cost: "399900", loan: "359900", av: "Lavadora Semiautomática White Westinghouse 15Kg" },
 
   "30466": { name: "Estufa 4 quemadores a gas", brand: "Acros", category: "Línea blanca",
-             cost: "399900", loan: "359900", firstPayment: 855.16,
-             av: "Estufa Acros 4 quemadores a gas" },
+             cost: "399900", loan: "359900", av: "Estufa Acros 4 quemadores a gas" },
 
   "29744": { name: "Bicicleta Eléctrica", category: "Transporte",
-             cost: "599900", loan: "539900", firstPayment: 1282.86, badge: "Nuevo",
+             cost: "599900", loan: "539900", badge: "Nuevo",
              av: "BICICLETA ELECTRICA" },
 
   "31007": { name: "Hielera con llantas 47 latas 57 L", brand: "Coleman", category: "Hogar",
-             cost: "159900", loan: "143900", firstPayment: 341.91, badge: "Nuevo",
+             cost: "159900", loan: "143900", badge: "Nuevo",
              av: "HIELERA CON LLANTAS 47 LATAS 57L COLEMAN" },
 
   "31336": { name: 'Pantalla Smart 32"', brand: "Hisense", category: "Pantallas",
-             cost: "249900", loan: "224900", firstPayment: 534.38, badge: "Más vendido",
+             cost: "249900", loan: "224900", badge: "Más vendido",
              av: 'PANTALLA HISENSE SMART 32"' },
 
   "30995": { name: "Freidora Digital 7.5 L", brand: "Oster", category: "Cocina",
-             cost: "149900", loan: "134900", firstPayment: 210.53, badge: "Nuevo",
+             cost: "149900", loan: "134900", badge: "Nuevo",
              av: "FREIDORA DIGITAL 7.5L OSTER" },
 
   "30996": { name: "Asador Smokey Joe", brand: "Weber", category: "Cocina",
-             cost: "159900", loan: "143900", firstPayment: 341.91, badge: "Nuevo",
+             cost: "159900", loan: "143900", badge: "Nuevo",
              av: "ASADOR WEBER SMOKEY JOE" },
 
   "31361": { name: "Multiestilizador 6 pzas", brand: "UNIQ", category: "Hogar",
-             cost: "279900", loan: "251900", firstPayment: 598.54, badge: "Nuevo",
+             cost: "279900", loan: "251900", badge: "Nuevo",
              av: "MULTIESTILIZADOR UNIQ 6 PCS" },
 
   /* --- Pendientes: falta primer pago del negocio y falta foto. Ver README. --- */
 
   "31618": { name: "Horno Microondas 1.5 ft³", category: "Cocina",
-             cost: "249900", loan: "224900", firstPayment: null, img: false,
+             cost: "249900", loan: "224900", img: false,
              av: "JUNS26 Horno Micro 1.5 CMKT" },
 
   "31619": { name: "Frigobar 1.7 Acero", category: "Línea blanca",
-             cost: "199900", loan: "179900", firstPayment: null, img: false,
+             cost: "199900", loan: "179900", img: false,
              av: "JUNS26 Frigobar 1.7 Acero" },
 
   "32275": { name: 'Pantalla 43" Roku Frameless', category: "Pantallas",
-             cost: "369900", loan: "332900", firstPayment: null, img: false, badge: "Nuevo",
+             cost: "369900", loan: "332900", img: false, badge: "Nuevo",
              av: 'Pantalla 43" JV Roku Frameless' },
 
   "32633": { name: "Curl Secret Rizador", category: "Hogar",
-             cost: "159900", loan: "143900", firstPayment: null, img: false, badge: "Nuevo",
+             cost: "159900", loan: "143900", img: false, badge: "Nuevo",
              av: "Curl Secret Rizador" },
 
   "27386": { name: "Refrigerador 7.3 pies WWH", brand: "White Westinghouse", category: "Línea blanca",
-             cost: "449900", loan: "404900", firstPayment: null, img: false, badge: "Nuevo",
+             cost: "449900", loan: "404900", img: false, badge: "Nuevo",
              av: "Refrigerador 7.3 pies WWH" },
 };
 
@@ -145,7 +130,7 @@ export const PRODUCTS = {
             de short.io y se acepta como store_id en la URL
      name — cómo se le muestra al cliente
 
-   Ojo: create_store_full_setup.py todavía solo conoce 8 de estas 17, y una
+   Ojo: create_store_full_setup.py todavía solo conoce 9 de estas 17, y una
    de las suyas —3330 SanBernabe2— no está en el padrón oficial (aquí es
    888 Sanbernabe). Hay que homologar ese script también.
    ---------------------------------------------------------------------- */
@@ -202,6 +187,51 @@ export const loanAmount = (p, store) =>
 
 export const downPayment = (p, store) =>
   (Number(p.cost) - Number(loanAmount(p, store))) / 100;
+
+/* -------------------------------------------------------------------------
+   MODELO DE CRÉDITO
+   -------------------------------------------------------------------------
+   Mismo modelo que calcAmortizacion() en flows/endpoint.js: capital =
+   préstamo/n, interés = saldo insoluto × 0.7% diario × días del periodo, IVA
+   16% sobre el interés. Verificado 28-jul-2026 contra una tabla real de avafin
+   (clave 30466, préstamo 3599, 12 parcialidades, primer pago 18/08/2026).
+
+   Como el capital es fijo y el saldo baja parejo, las dos cifras publicadas
+   son lineales en el préstamo y se reducen a un factor cada una:
+
+     primer pago = préstamo × (1/n + K × d1)
+     total       = préstamo × (1 + K × (d1 + PERIODO × (n−1)/2))
+
+   d1 es lo único que cambia entre cotizaciones: son los días entre el cálculo
+   y la fecha de primer pago que elige el cliente. Publicamos el escenario
+   estándar (21 días, 12 quincenas) y el pie de página lo dice, porque el
+   número real depende de cuándo y para qué fecha se cotice.
+
+   El factor queda ~$0.06 por debajo del total que cobra avafin, que redondea
+   periodo por periodo. Se acepta a cambio de tener una sola fórmula: la cifra
+   es de referencia, no la carátula del crédito.
+   ---------------------------------------------------------------------- */
+export const DAILY_RATE = 0.007;
+export const IVA_RATE = 0.16;
+export const INSTALLMENTS = 12;
+export const FIRST_PAYMENT_DAYS = 21;
+export const PERIOD_DAYS = 16;
+
+const K = DAILY_RATE * (1 + IVA_RATE);
+
+export const FIRST_PAYMENT_FACTOR = 1 / INSTALLMENTS + K * FIRST_PAYMENT_DAYS;
+export const TOTAL_FACTOR =
+  1 + K * (FIRST_PAYMENT_DAYS + (PERIOD_DAYS * (INSTALLMENTS - 1)) / 2);
+
+const round2 = (n) => Math.round(n * 100) / 100;
+
+/* En las tiendas sin enganche loanAmount() ya devuelve el costo completo, así
+   que las dos funciones sirven para los dos escenarios sin ramificar. */
+export const firstPayment = (p, store) =>
+  round2((Number(loanAmount(p, store)) / 100) * FIRST_PAYMENT_FACTOR);
+
+export const totalPayment = (p, store) =>
+  round2((Number(loanAmount(p, store)) / 100) * TOTAL_FACTOR);
 
 /* -------------------------------------------------------------------------
    URL de avafin — mismo formato y mismos parámetros que build_long_url() en

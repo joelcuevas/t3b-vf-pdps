@@ -124,7 +124,6 @@
     font-size: 46px; font-weight: 800; letter-spacing: -0.04em; line-height: 0.92;
   }
   .price-main .unit { font-size: 17px; font-weight: 600; color: var(--ink-2); letter-spacing: -0.02em; }
-  .price-main.pending .amount { font-size: 20px; line-height: 1.25; letter-spacing: -0.02em; }
 
   .price-side {
     text-align: right; padding-left: 14px; border-left: 1px solid var(--line);
@@ -296,7 +295,6 @@
     .price-main .row { gap: 10px; }
     .price-main .amount { font-size: 76px; }
     .price-main .unit { font-size: 26px; }
-    .price-main.pending .amount { font-size: 30px; }
 
     .price-side { padding-left: 26px; gap: 12px; }
     .price-side .label { font-size: 12px; letter-spacing: 0.09em; }
@@ -367,7 +365,7 @@
         </div>
         <div>
           <div class="label">Total a pagar</div>
-          <div class="val" id="cashPriceValue"></div>
+          <div class="val" id="totalPaymentValue"></div>
         </div>
       </div>
     </div>
@@ -426,7 +424,7 @@
 
     <div class="legal">
       <p>El otorgamiento del crédito es realizado exclusiva y directamente por AVAILABLE FINANCES, S.A. DE C.V., quien actúa como un tercero independiente y ajeno a Tiendas Tres B. Para conocer condiciones completas de enganche, términos y restricciones y demás características aplicables a los créditos otorgados por AvaFin consulta directamente en <a href="https://www.avafin.mx/">https://www.avafin.mx/</a>.</p>
-      <p>Pago quincenal de referencia calculado al primer pago, al máximo de quincenas y fecha de pago; este y los pagos subsecuentes pueden variar dependiendo del plazo seleccionado. Consulta la tabla de amortización al momento de aplicar al préstamo. Válido solo en Tiendas 3B seleccionadas.</p>
+      <p>Primer pago quincenal calculado a 21 días y 12 quincenas; este y los pagos subsecuentes pueden variar dependiendo del plazo seleccionado y la fecha del cálculo. Consulta la tabla de amortización al momento de aplicar al préstamo. Válido solo en Tiendas 3B seleccionadas.</p>
       <p>Las imágenes son de referencia, el producto final puede variar. Consulta modelos y disponibilidad en tienda.</p>
     </div>
   </section>
@@ -455,7 +453,7 @@
 </div>
 
 <script type="module">
-import { PRODUCTS, NO_DOWN_PAYMENT_STORES, findStore, cashPrice, downPayment, avafinUrl } from "./catalog.js";
+import { PRODUCTS, NO_DOWN_PAYMENT_STORES, findStore, downPayment, firstPayment, totalPayment, INSTALLMENTS, avafinUrl } from "./catalog.js";
 
 /* Iconos de los chips, tomados del mock. */
 const ICONS = {
@@ -474,6 +472,11 @@ const chip = (icon, text) => `
   </div>`;
 
 const fmt = (n) => "$" + Number(n).toLocaleString("es-MX", { maximumFractionDigits: 0 });
+
+/* Las cifras del crédito van con centavos: son el resultado del factor, y
+   redondearlas a pesos las separaría de lo que el cliente ve en avafin. */
+const fmt2 = (n) =>
+  "$" + Number(n).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 /* ---- Parámetros ---- */
 const qs = new URLSearchParams(location.search);
@@ -535,24 +538,16 @@ function render() {
   document.getElementById("specs").innerHTML = chips.join("");
 
   /* --- Precio ---
-     En Tetiz y Postes el monto financiado es mayor (loan == cost), así que
-     la cifra quincenal de la lista del negocio —calculada con enganche— no
-     aplica. Se omite en vez de mostrar un número que no se va a cumplir. */
+     Las dos cifras salen del factor sobre el monto financiado, que en las
+     tiendas sin enganche es el costo completo. Por eso ya no hay caso
+     "Te lo calculamos en tienda": aplica igual en las siete tiendas. */
   const priceMain = document.getElementById("priceMainEl");
-  const showFirstPayment = product.firstPayment !== null && !noDownPayment;
-  if (showFirstPayment) {
-    priceMain.innerHTML = `
-      <div class="cap">1er pago de 12 desde</div>
-      <div class="row">
-        <div class="amount">${fmt(Math.ceil(product.firstPayment))}</div>
-        <div class="unit">quincenales</div>
-      </div>`;
-  } else {
-    priceMain.classList.add("pending");
-    priceMain.innerHTML = `
-      <div class="cap">Pago quincenal</div>
-      <div class="row"><div class="amount">Te lo calculamos en tienda</div></div>`;
-  }
+  priceMain.innerHTML = `
+    <div class="cap">1er pago de ${INSTALLMENTS} desde</div>
+    <div class="row">
+      <div class="amount">${fmt2(firstPayment(product, store))}</div>
+      <div class="unit">quincenales</div>
+    </div>`;
 
   const downPaymentEl = document.getElementById("downPaymentValue");
   if (noDownPayment) {
@@ -561,7 +556,7 @@ function render() {
   } else {
     downPaymentEl.textContent = fmt(downPayment(product, store));
   }
-  document.getElementById("cashPriceValue").textContent = fmt(cashPrice(product));
+  document.getElementById("totalPaymentValue").textContent = fmt2(totalPayment(product, store));
 }
 
 /* ---- Plazos ---- */

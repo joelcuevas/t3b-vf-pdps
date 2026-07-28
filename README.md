@@ -132,18 +132,8 @@ Sin build step: estático + una función en `api/`.
 `catalog.js` es el espejo de `PRODUCTS`/`STORES` en
 `qrs/create_store_full_setup.py`. Falta:
 
-- **Primer pago de 5 productos** (`32275`, `32633`, `27386`, `31618`, `31619`):
-  `firstPayment: null`. La página muestra "Consulta tu pago quincenal en tienda"
-  en vez de inventar una cifra. `31619` ya tiene QR vivo en Exhibimex y Cisnes,
-  así que va a recibir tráfico real.
-- **Fotos de esos mismos 5**: falta `img/{clave}.jpg`, se muestra un
-  placeholder con la categoría.
-- **Primer pago sin enganche**: en Tetiz (1931) y Postes (1955) el monto
-  financiado es mayor (`loan == cost`), así que la cifra quincenal de la lista
-  del negocio —calculada con enganche— no aplica. Mientras no exista esa
-  segunda lista, esas dos tiendas muestran "Consulta tu pago quincenal en
-  tienda" y el enganche en verde como "Sin enganche".
-
+- **Fotos de 5 productos** (`32275`, `32633`, `27386`, `31618`, `31619`): falta
+  `img/{clave}.jpg`, se muestra un placeholder con la categoría.
 - **Fichas técnicas**: el mock muestra chips reales del producto (`1100 W`,
   `1.3 ft³ · 36.8 L`, `Negro espejo`). Solo `30742` los tiene cargados, en el
   campo `specs` del catálogo. Los demás caen a un chip de marca y uno de
@@ -152,8 +142,34 @@ Sin build step: estático + una función en `api/`.
 - **Carrusel**: el mock dibuja tres puntos de galería. Solo hay una foto por
   producto, así que se omiten en vez de fingir imágenes que no existen.
 
-El primer pago usa la lista del negocio, la misma que `landing/index.html`, no
-la tabla de amortización (difieren ~0.5%).
+## El primer pago y el total no se capturan
+
+Las dos cifras se **derivan** del monto financiado. No hay ningún número de
+crédito escrito a mano en `catalog.js`:
+
+```
+préstamo    = cost − enganche        (= cost en Tetiz y Postes)
+primer pago = préstamo × 0.2538533
+total       = préstamo × 1.8850800
+```
+
+Los factores salen del modelo de `flows/endpoint.js` —capital = préstamo/12,
+interés = saldo insoluto × 0.7% diario × días del periodo, IVA 16%— evaluado en
+el escenario que publicamos: **12 quincenas y 21 días al primer pago**. Se
+verificó contra una tabla real de avafin (clave `30466`, préstamo 3,599, primer
+pago 18/08/2026): las 12 filas cuadran con diferencia máxima de $0.09.
+
+Los días al primer pago (`d1`) son lo único que cambia entre cotizaciones: son
+los que hay entre el cálculo y la fecha que elige el cliente. Por eso el pie de
+página declara el escenario en vez de presentar la cifra como definitiva.
+
+> Antes estas cifras se capturaban a mano desde una hoja del negocio. Esa hoja
+> venía de una corrida con `d1= 19`, así que **todo lo publicado estaba 6.8%
+> por debajo** de lo que cobra avafin, con tres celdas peor todavía (`30995`
+> −62%). Derivarlas es lo que evita que se vuelva a desfasar.
+
+El factor queda ~$0.06 abajo del total de avafin, que redondea periodo por
+periodo. Se acepta a cambio de tener una sola fórmula.
 
 ## Riesgo asumido
 
@@ -193,7 +209,7 @@ URLs útiles para revisar los tres casos que se ven distinto:
 | Caso | URL |
 |---|---|
 | Normal, con foto y precio | `/?store_id=3670&product_id=30742` |
-| Sin foto y sin primer pago | `/?store_id=3670&product_id=31619` |
+| Sin foto (placeholder de categoría) | `/?store_id=3670&product_id=31619` |
 | Tienda sin enganche | `/?store_id=Tetiz&product_id=30553` |
 | Enlace roto | `/?store_id=9999&product_id=30742` |
 
@@ -223,7 +239,7 @@ node -e "import('./catalog.js').then(m=>console.log(m.STORES.flatMap(s=>
 comm -23 /tmp/a /tmp/b   # vacío = ninguna URL del script cambió
 ```
 
-`catalog.js` tiene 17 tiendas y el script todavía 8, así que el catálogo genera
+`catalog.js` tiene 17 tiendas y el script todavía 9, así que el catálogo genera
 más URLs de las que el script conoce; lo que importa es que **ninguna de las
 del script falte**. La única excepción esperada hoy son las 26 de
 `3330 SanBernabe2`, tienda que el padrón oficial no incluye (ahí es
