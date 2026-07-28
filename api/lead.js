@@ -18,8 +18,8 @@ import { PRODUCTS, findStore, UTM_CAMPAIGN } from "../catalog.js";
 
 const TIMEOUT_MS = 8000;
 const ATTEMPTS = 3;
-const INPUTS = [4, 8, 12];
-const INPUT_DEFAULT = 8;
+const USER_INPUTS = [4, 8, 12];
+const USER_INPUT_DEFAULT = 8;
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -50,7 +50,9 @@ export default async function handler(req, res) {
 
   // Quincenas elegidas en el selector. Si llega algo fuera de la lista se cae
   // al default en vez de escribir basura en la hoja.
-  const input = INPUTS.includes(Number(body.input)) ? Number(body.input) : INPUT_DEFAULT;
+  const user_input = USER_INPUTS.includes(Number(body.user_input))
+    ? Number(body.user_input)
+    : USER_INPUT_DEFAULT;
 
   // utm_source es text libre que viene de la URL: se limpia antes de escribirlo.
   const utm_source = String(body.utm_source || "")
@@ -67,7 +69,7 @@ export default async function handler(req, res) {
     utm_source,
     // No se toma del cliente: identifica la variante de landing y se fija aquí.
     utm_campaign: UTM_CAMPAIGN,
-    input,
+    user_input,
   };
 
   // --- Escritura en la hoja --------------------------------------------

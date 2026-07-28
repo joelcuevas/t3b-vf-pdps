@@ -388,7 +388,7 @@
       <div class="field">
         <div class="box" id="phoneBox">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg>
-          <input id="phone" type="phoneInput" inputmode="numeric" autocomplete="phoneInput-national"
+          <input id="phone" type="tel" inputmode="numeric" autocomplete="tel-national"
                  maxlength="12" placeholder="55 1234 5678" aria-label="Tu número de celular" />
         </div>
       </div>
@@ -485,7 +485,7 @@ const store = findStore(rawStore);
 const product = PRODUCTS[rawProduct];
 
 // Quincenas elegidas en el selector; el mock trae 8 preseleccionado.
-let input = 8;
+let userInput = 8;
 
 if (!store || !product) {
   document.getElementById("productView").hidden = true;
@@ -570,7 +570,7 @@ document.getElementById("terms").addEventListener("click", (e) => {
   if (!b) return;
   document.querySelectorAll(".term").forEach((p) => p.classList.remove("on"));
   b.classList.add("on");
-  input = Number(b.dataset.term);
+  userInput = Number(b.dataset.term);
 });
 
 /* ---- Formulario ---- */
@@ -639,7 +639,7 @@ form.addEventListener("submit", async (e) => {
         store_id: store.code,
         product_id: rawProduct,
         utm_source: utmSource,
-        input,
+        user_input: userInput,
       }),
       keepalive: true, // sobrevive a la navegación que viene enseguida
     });

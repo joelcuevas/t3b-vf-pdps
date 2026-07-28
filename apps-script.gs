@@ -52,7 +52,7 @@ const FIELDS = [
   "product_name",
   "utm_source",    // de la URL
   "utm_campaign",  // variante de landing; la fija el servidor
-  "input",         // quincenas elegidas en el selector (4 / 8 / 12)
+  "user_input",    // quincenas elegidas en el selector (4 / 8 / 12)
 ];
 
 function doPost(e) {
@@ -90,7 +90,7 @@ function doPost(e) {
       product_name: String(d.product_name || ""),
       utm_source: String(d.utm_source || ""),
       utm_campaign: String(d.utm_campaign || ""),
-      input: d.input || "",
+      user_input: d.user_input || "",
     };
 
     // Escribe celda por celda buscando cada field por NOMBRE de encabezado.

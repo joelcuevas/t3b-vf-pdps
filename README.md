@@ -61,7 +61,7 @@ y no ofrece el formulario.
 ## Columnas de la hoja
 
 `id · created_at · phone · store_id · store_name · product_id · product_name ·`
-`utm_source · utm_campaign · input`
+`utm_source · utm_campaign · user_input`
 
 | Columna | De dónde sale |
 |---|---|
@@ -71,8 +71,8 @@ y no ofrece el formulario.
 | `store_id` / `store_name` | de `store_id` en la URL, resuelto **en el servidor** |
 | `product_id` / `product_name` | de `product_id` en la URL, resuelto **en el servidor** |
 | `utm_source` | de `utm_source` en la URL; vacío si no viene |
-| `utm_campaign` | fijo, identifica la variante de landing. Hoy `landing_installements` |
-| `input` | quincenas elegidas en el selector: 4, 8 o 12 (default 8) |
+| `utm_campaign` | fijo, identifica la variante de landing. Hoy `landing_installments` |
+| `user_input` | quincenas elegidas en el selector: 4, 8 o 12 (default 8) |
 
 `utm_campaign` **no se toma del navegador**: lo pone `api/lead.js` desde la
 constante `UTM_CAMPAIGN` de `catalog.js`, para que no se pueda falsear desde
