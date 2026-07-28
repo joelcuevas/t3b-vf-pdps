@@ -61,7 +61,7 @@
   .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #fff; }
   .brandmark {
     position: absolute; top: 16px; left: 16px;
-    width: 48px; height: 48px;
+    width: 72px; height: 72px;
   }
   .gallery .photo { width: 100%; max-width: 340px; height: auto; mix-blend-mode: multiply; }
   .gallery .no-photo {
@@ -70,7 +70,7 @@
   }
   /* Enlace inválido: no hay producto que mostrar, así que la galería se
      reduce a la franja del logo en vez de dejar un hueco gris enorme. */
-  /* 110px = top del logo (16) + su alto (48) + el traslape de la ficha (22). */
+  /* 110px = top del logo (16) + su alto (72) + el traslape de la ficha (22). */
   .gallery.empty { min-height: 110px; }
 
   /* ===== FICHA ===== */
@@ -125,9 +125,10 @@
     font-size: 9.5px; font-weight: 800; letter-spacing: 0.07em;
     color: var(--ink-3); text-transform: uppercase;
   }
+  /* Enganche y contado comparten estilo: mismo tamaño, mismo peso, mismo
+     color. .free solo cambia el color cuando la tienda no cobra enganche. */
   .price-side .val { font-size: 20px; font-weight: 800; letter-spacing: -0.025em; line-height: 1; }
-  .price-side .val.sm { font-size: 16px; color: var(--ink-2); }
-  .price-side .val.free { color: #16a34a; font-size: 15px; }
+  .price-side .val.free { color: #16a34a; }
 
   hr { border: 0; border-top: 1px solid var(--line); margin: 22px 0 20px; }
 
@@ -149,11 +150,9 @@
   @media (hover: hover) { .term:not(.on):hover { background: #e7eaef; } }
 
   /* ===== FORM ===== */
-  .field { position: relative; margin-top: 22px; }
-  .field .legend {
-    position: absolute; top: -7px; left: 16px; background: #fff; padding: 0 7px;
-    font-size: 12.5px; font-weight: 700; color: var(--ink-2); z-index: 1;
-  }
+  .field { position: relative; }
+  /* El encabezado del teléfono aporta la separación que antes daba .field. */
+  form .question { margin-top: 24px; }
   .field .box {
     display: flex; align-items: center; gap: 11px;
     border: 1.5px solid var(--line); border-radius: 999px;
@@ -252,8 +251,6 @@
     .price-side { padding-left: 26px; gap: 12px; }
     .price-side .label { font-size: 12px; letter-spacing: 0.09em; }
     .price-side .val { font-size: 30px; }
-    .price-side .val.sm { font-size: 22px; }
-    .price-side .val.free { font-size: 20px; }
 
     hr { margin: 28px 0 24px; }
 
@@ -263,8 +260,7 @@
     .term .n { font-size: 26px; }
     .term .label { font-size: 12px; letter-spacing: 0.08em; }
 
-    .field { margin-top: 26px; }
-    .field .legend { top: -8px; left: 22px; padding: 0 8px; font-size: 14px; }
+    form .question { margin-top: 30px; }
     .field .box { gap: 14px; padding: 22px 28px; }
     .field .box svg { width: 24px; height: 24px; }
     .field input { font-size: 30px; }
@@ -312,7 +308,7 @@
       <div class="price-side">
         <div>
           <div class="label">Enganche</div>
-          <div class="val sm" id="downPaymentValue"></div>
+          <div class="val" id="downPaymentValue"></div>
         </div>
         <div>
           <div class="label">Precio de contado</div>
@@ -333,8 +329,8 @@
 
     <!-- ===== FORM ===== -->
     <form id="form" novalidate>
+      <div class="question">Ingresa tu teléfono celular</div>
       <div class="field">
-        <div class="legend">Tu número de celular</div>
         <div class="box" id="phoneBox">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg>
           <input id="phone" type="phoneInput" inputmode="numeric" autocomplete="phoneInput-national"
@@ -369,7 +365,7 @@
 
     <div class="legal">
       <p>El otorgamiento del crédito es realizado exclusiva y directamente por AVAILABLE FINANCES, S.A. DE C.V., quien actúa como un tercero independiente y ajeno a Tiendas Tres B. Para conocer condiciones completas de enganche, términos y restricciones y demás características aplicables a los créditos otorgados por AvaFin consulta directamente en <a href="https://www.avafin.mx/">https://www.avafin.mx/</a>.</p>
-      <p>Pago quincenal calculado al primer pago; este y los pagos subsecuentes pueden variar dependiendo del plazo seleccionado. Consulta la tabla de amortización al momento de aplicar al préstamo. Válido solo en Tiendas 3B seleccionadas.</p>
+      <p>Pago quincenal de referencia calculado al primer pago, al máximo de quincenas y fecha de pago; este y los pagos subsecuentes pueden variar dependiendo del plazo seleccionado. Consulta la tabla de amortización al momento de aplicar al préstamo. Válido solo en Tiendas 3B seleccionadas.</p>
       <p>Las imágenes son de referencia, el producto final puede variar. Consulta modelos y disponibilidad en tienda.</p>
     </div>
   </section>
@@ -473,7 +469,7 @@ function render() {
   const showFirstPayment = product.firstPayment !== null && !noDownPayment;
   if (showFirstPayment) {
     priceMain.innerHTML = `
-      <div class="cap">1er pago quincenal</div>
+      <div class="cap">1er pago desde</div>
       <div class="row">
         <div class="amount">${fmt(Math.ceil(product.firstPayment))}</div>
         <div class="unit">quincenales</div>
@@ -488,7 +484,6 @@ function render() {
   const downPaymentEl = document.getElementById("downPaymentValue");
   if (noDownPayment) {
     downPaymentEl.textContent = "Sin enganche";
-    downPaymentEl.classList.remove("sm");
     downPaymentEl.classList.add("free");
   } else {
     downPaymentEl.textContent = fmt(downPayment(product, store));
