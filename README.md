@@ -72,7 +72,7 @@ y no ofrece el formulario.
 | `product_id` / `product_name` | de `product_id` en la URL, resuelto **en el servidor** |
 | `utm_source` | de `utm_source` en la URL; vacío si no viene |
 | `utm_campaign` | fijo, identifica la variante de landing. Hoy `dangler_installments` |
-| `user_input` | quincenas elegidas en el selector: 4, 8 o 12 (default 8) |
+| `user_input` | quincenas del pago elegido en el selector: 4, 8 o 12 (default 8) |
 
 `utm_campaign` **no se toma del navegador**: lo pone `api/lead.js` desde la
 constante `UTM_CAMPAIGN` de `catalog.js`, para que no se pueda falsear desde
@@ -136,32 +136,45 @@ Sin build step: estático + una función en `api/`.
   `img/{clave}.jpg`, se muestra un placeholder con la categoría.
 - **Fichas técnicas**: el mock muestra chips reales del producto (`1100 W`,
   `1.3 ft³ · 36.8 L`, `Negro espejo`). Solo `30742` los tiene cargados, en el
-  campo `specs` del catálogo. Los demás caen a un chip de marca y uno de
-  categoría, que es lo único que hay en los datos actuales. Para igualar el
-  mock en los 26 productos hace falta esa hoja de especificaciones.
+  campo `specs` del catálogo; para igualar el mock en los 26 productos hace
+  falta esa hoja de especificaciones. La variante actual de la ficha **no
+  dibuja chips** (ver abajo), así que `specs` está inactivo por ahora.
 - **Carrusel**: el mock dibuja tres puntos de galería. Solo hay una foto por
   producto, así que se omiten en vez de fingir imágenes que no existen.
 
-## El primer pago y el total no se capturan
+## Qué muestra esta variante de la ficha
 
-Las dos cifras se **derivan** del monto financiado. No hay ningún número de
+Fuera: los chips de detalle (marca, categoría, `Disponible en {tienda}`) y el
+bloque de precio completo —primer pago, enganche y total a pagar—. El markup y
+el CSS se eliminaron de `index.html`; el modelo sigue entero en `catalog.js`
+para poder restituirlos.
+
+La única cifra que queda es el **pago quincenal**, y vive dentro del selector:
+la pregunta es "¿Cuánto quieres pagar a la quincena?" y cada botón es el pago
+de un plazo —12, 8 y 4 quincenas, en ese orden, del más chico al más grande—
+redondeado a la decena más cercana. El botón no dice el plazo; el que se
+elige se sigue reportando en `user_input`.
+
+## El pago quincenal y el total no se capturan
+
+Las cifras se **derivan** del monto financiado. No hay ningún número de
 crédito escrito a mano en `catalog.js`:
 
 ```
 préstamo    = cost − enganche        (= cost en Tetiz y Postes)
-primer pago = préstamo × 0.2538533
-total       = préstamo × 1.8850800
+pago 1 (n)  = préstamo × (1/n + K × 21)      K = 0.007 × 1.16
+total  (n)  = préstamo × (1 + K × (21 + 16 × (n−1)/2))
 ```
 
-Los factores salen del modelo de `flows/endpoint.js` —capital = préstamo/12,
-interés = saldo insoluto × 0.7% diario × días del periodo, IVA 16%— evaluado en
-el escenario que publicamos: **12 quincenas y 21 días al primer pago**. Se
+Con n = 12 eso da los factores 0.2538533 y 1.8850800. Salen del modelo de
+`flows/endpoint.js` —capital = préstamo/n, interés = saldo insoluto × 0.7%
+diario × días del periodo, IVA 16%— evaluado en **21 días al primer pago**. Se
 verificó contra una tabla real de avafin (clave `30466`, préstamo 3,599, primer
 pago 18/08/2026): las 12 filas cuadran con diferencia máxima de $0.09.
 
 Los días al primer pago (`d1`) son lo único que cambia entre cotizaciones: son
-los que hay entre el cálculo y la fecha que elige el cliente. Por eso el pie de
-página declara el escenario en vez de presentar la cifra como definitiva.
+los que hay entre el cálculo y la fecha que elige el cliente. Por eso el monto
+del selector va redondeado a la decena: es una referencia, no la carátula.
 
 > Antes estas cifras se capturaban a mano desde una hoja del negocio. Esa hoja
 > venía de una corrida con `d1= 19`, así que **todo lo publicado estaba 6.8%

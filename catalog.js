@@ -219,19 +219,24 @@ export const PERIOD_DAYS = 16;
 
 const K = DAILY_RATE * (1 + IVA_RATE);
 
-export const FIRST_PAYMENT_FACTOR = 1 / INSTALLMENTS + K * FIRST_PAYMENT_DAYS;
-export const TOTAL_FACTOR =
-  1 + K * (FIRST_PAYMENT_DAYS + (PERIOD_DAYS * (INSTALLMENTS - 1)) / 2);
+/* Los factores dependen del plazo n. INSTALLMENTS (12) es el escenario que se
+   publica por default; el selector de la ficha cotiza además 8 y 4. */
+export const firstPaymentFactor = (n = INSTALLMENTS) => 1 / n + K * FIRST_PAYMENT_DAYS;
+export const totalFactor = (n = INSTALLMENTS) =>
+  1 + K * (FIRST_PAYMENT_DAYS + (PERIOD_DAYS * (n - 1)) / 2);
+
+export const FIRST_PAYMENT_FACTOR = firstPaymentFactor();
+export const TOTAL_FACTOR = totalFactor();
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
 /* En las tiendas sin enganche loanAmount() ya devuelve el costo completo, así
    que las dos funciones sirven para los dos escenarios sin ramificar. */
-export const firstPayment = (p, store) =>
-  round2((Number(loanAmount(p, store)) / 100) * FIRST_PAYMENT_FACTOR);
+export const firstPayment = (p, store, n = INSTALLMENTS) =>
+  round2((Number(loanAmount(p, store)) / 100) * firstPaymentFactor(n));
 
-export const totalPayment = (p, store) =>
-  round2((Number(loanAmount(p, store)) / 100) * TOTAL_FACTOR);
+export const totalPayment = (p, store, n = INSTALLMENTS) =>
+  round2((Number(loanAmount(p, store)) / 100) * totalFactor(n));
 
 /* -------------------------------------------------------------------------
    URL de avafin — mismo formato y mismos parámetros que build_long_url() en

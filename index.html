@@ -100,51 +100,12 @@
   .sku { font-size: 12px; font-weight: 700; color: var(--ink-3); white-space: nowrap; padding-top: 4px; }
   .sku b { color: var(--ink-2); }
 
-  .specs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
-  .spec {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: #f2f4f7; border: 1px solid var(--line);
-    padding: 7px 11px; border-radius: 9px;
-    font-size: 12.5px; font-weight: 700; color: var(--ink-2);
-  }
-  .spec svg { width: 14px; height: 14px; color: var(--navy); flex-shrink: 0; }
-
-  /* ===== PRECIO ===== */
-  .price {
-    display: flex; align-items: flex-end; justify-content: space-between;
-    gap: 14px; margin-top: 22px;
-  }
-  .price-main { min-width: 0; }
-  .price-main .cap {
-    font-size: 13.5px; font-weight: 700; color: var(--ink-3);
-    letter-spacing: -0.01em; margin-bottom: 2px;
-  }
-  .price-main .row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-  .price-main .amount {
-    font-size: 46px; font-weight: 800; letter-spacing: -0.04em; line-height: 0.92;
-  }
-  .price-main .unit { font-size: 17px; font-weight: 600; color: var(--ink-2); letter-spacing: -0.02em; }
-
-  .price-side {
-    text-align: right; padding-left: 14px; border-left: 1px solid var(--line);
-    align-self: stretch; display: flex; flex-direction: column; justify-content: flex-end; gap: 9px;
-    flex-shrink: 0;
-  }
-  .price-side .label {
-    font-size: 9.5px; font-weight: 800; letter-spacing: 0.07em;
-    color: var(--ink-3); text-transform: uppercase;
-  }
-  /* Enganche y contado comparten estilo: mismo tamaño, mismo peso, mismo
-     color. .free solo cambia el color cuando la tienda no cobra enganche. */
-  .price-side .val { font-size: 20px; font-weight: 800; letter-spacing: -0.025em; line-height: 1; }
-  .price-side .val.free { color: #16a34a; }
-
   hr { border: 0; border-top: 1px solid var(--line); margin: 22px 0 20px; }
 
   /* ===== PLAZOS ===== */
   .question { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 12px; }
   .terms {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px;
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px;
     background: #f2f4f7; padding: 7px; border-radius: 15px;
   }
   .term {
@@ -152,10 +113,13 @@
     background: transparent; border: 0; font-family: inherit; cursor: pointer;
     transition: background .15s;
   }
-  .term .n { font-size: 21px; font-weight: 800; color: var(--ink-3); letter-spacing: -0.02em; }
-  .term .label { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; color: var(--ink-3); margin-top: 1px; }
+  /* .n es el monto quincenal, único contenido del botón. minmax(0,1fr) de
+     arriba es indispensable: con 1fr a secas el auto-mínimo de la columna
+     hace que el monto más largo ("$2,780") ensanche la rejilla y desborde la
+     pantalla en 320px. */
+  .term .n { font-size: 21px; font-weight: 800; color: var(--ink-3); letter-spacing: -0.03em; white-space: nowrap; }
   .term.on { background: var(--red); }
-  .term.on .n, .term.on .label { color: #fff; }
+  .term.on .n { color: #fff; }
   @media (hover: hover) { .term:not(.on):hover { background: #e7eaef; } }
 
   /* ===== FORM ===== */
@@ -286,27 +250,12 @@
     h1 { font-size: 42px; line-height: 1.1; letter-spacing: -0.028em; }
     .sku { font-size: 15px; padding-top: 8px; }
 
-    .specs { gap: 8px; margin-top: 18px; }
-    .spec { padding: 8px 14px; font-size: 15px; gap: 7px; }
-    .spec svg { width: 15px; height: 15px; }
-
-    .price { gap: 24px; margin-top: 30px; }
-    .price-main .cap { font-size: 17px; }
-    .price-main .row { gap: 10px; }
-    .price-main .amount { font-size: 76px; }
-    .price-main .unit { font-size: 26px; }
-
-    .price-side { padding-left: 26px; gap: 12px; }
-    .price-side .label { font-size: 12px; letter-spacing: 0.09em; }
-    .price-side .val { font-size: 30px; }
-
     hr { margin: 28px 0 24px; }
 
     .question { font-size: 21px; margin-bottom: 14px; }
     .terms { gap: 10px; padding: 10px; border-radius: 18px; }
     .term { padding: 15px 8px 13px; border-radius: 13px; }
     .term .n { font-size: 26px; }
-    .term .label { font-size: 12px; letter-spacing: 0.08em; }
 
     form .question { margin-top: 30px; }
     .field .box { gap: 14px; padding: 22px 28px; }
@@ -353,32 +302,13 @@
       <div class="sku">Clave: <b id="productSku"></b></div>
     </div>
 
-    <div class="specs" id="specs"></div>
-
-    <!-- ===== PRECIO ===== -->
-    <div class="price">
-      <div class="price-main" id="priceMainEl"></div>
-      <div class="price-side">
-        <div>
-          <div class="label">Enganche</div>
-          <div class="val" id="downPaymentValue"></div>
-        </div>
-        <div>
-          <div class="label">Total a pagar</div>
-          <div class="val" id="totalPaymentValue"></div>
-        </div>
-      </div>
-    </div>
-
     <hr />
 
     <!-- ===== PLAZOS ===== -->
-    <div class="question">¿En cuántas quincenas quieres pagar?</div>
-    <div class="terms" id="terms">
-      <button type="button" class="term" data-term="4"><div class="n">4</div><div class="label">QUINCENAS</div></button>
-      <button type="button" class="term on" data-term="8"><div class="n">8</div><div class="label">QUINCENAS</div></button>
-      <button type="button" class="term" data-term="12"><div class="n">12</div><div class="label">QUINCENAS</div></button>
-    </div>
+    <!-- Los montos dependen del producto y de la tienda, así que los botones
+         se arman en render(). -->
+    <div class="question">¿Cuánto quieres pagar a la quincena?</div>
+    <div class="terms" id="terms"></div>
 
     <!-- ===== FORM ===== -->
     <form id="form" novalidate>
@@ -393,10 +323,8 @@
 
 
       <p class="consent">
-        Consulta el
-        <a href="https://tiendas3b.com/aviso-de-privacidad/" target="_blank" rel="noopener noreferrer">Aviso de Privacidad</a>
-        y
-        <a href="https://www.tiendas3b.com/terminos-y-condiciones-credito-3b/" target="_blank" rel="noopener noreferrer">Términos del Servicio</a>
+        Al continuar, acepto el
+        <a href="https://tiendas3b.com/aviso-de-privacidad/" target="_blank" rel="noopener noreferrer">Aviso de Privacidad</a>.
       </p>
 
       <button type="submit" class="cta" id="cta">
@@ -424,7 +352,6 @@
 
     <div class="legal">
       <p>El otorgamiento del crédito es realizado exclusiva y directamente por AVAILABLE FINANCES, S.A. DE C.V., quien actúa como un tercero independiente y ajeno a Tiendas Tres B. Para conocer condiciones completas de enganche, términos y restricciones y demás características aplicables a los créditos otorgados por AvaFin consulta directamente en <a href="https://www.avafin.mx/">https://www.avafin.mx/</a>.</p>
-      <p>Primer pago quincenal calculado a 21 días y 12 quincenas; este y los pagos subsecuentes pueden variar dependiendo del plazo seleccionado y la fecha del cálculo. Consulta la tabla de amortización al momento de aplicar al préstamo. Válido solo en Tiendas 3B seleccionadas.</p>
       <p>Las imágenes son de referencia, el producto final puede variar. Consulta modelos y disponibilidad en tienda.</p>
     </div>
   </section>
@@ -453,30 +380,12 @@
 </div>
 
 <script type="module">
-import { PRODUCTS, NO_DOWN_PAYMENT_STORES, findStore, downPayment, firstPayment, totalPayment, INSTALLMENTS, avafinUrl } from "./catalog.js";
-
-/* Iconos de los chips, tomados del mock. */
-const ICONS = {
-  bolt:    '<path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/>',
-  box:     '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M15 5v14"/>',
-  color:   '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18"/>',
-  store:   '<path d="M4 20h16M6 20V9M18 20V9M3 9l9-5 9 5"/>',
-  brand:   '<path d="M20.6 13.4 12 4.8V2H4v8h2.8l8.6 8.6a2 2 0 0 0 2.8 0l2.4-2.4a2 2 0 0 0 0-2.8z"/><circle cx="7.5" cy="6.5" r="1"/>',
-};
-
-const chip = (icon, text) => `
-  <div class="spec">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-         stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ICONS[icon] || ICONS.box}</svg>
-    ${text}
-  </div>`;
+/* Esta versión de la ficha no muestra el bloque de precio (primer pago,
+   enganche, total a pagar) ni los chips de detalle. La única cifra que queda
+   es el pago quincenal de cada opción del selector. */
+import { PRODUCTS, findStore, firstPayment, avafinUrl } from "./catalog.js";
 
 const fmt = (n) => "$" + Number(n).toLocaleString("es-MX", { maximumFractionDigits: 0 });
-
-/* Las cifras del crédito van con centavos: son el resultado del factor, y
-   redondearlas a pesos las separaría de lo que el cliente ve en avafin. */
-const fmt2 = (n) =>
-  "$" + Number(n).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 /* ---- Parámetros ---- */
 const qs = new URLSearchParams(location.search);
@@ -486,6 +395,11 @@ const utmSource = (qs.get("utm_source") || "").trim().slice(0, 120);
 
 const store = findStore(rawStore);
 const product = PRODUCTS[rawProduct];
+
+/* Plazos que ofrece el selector, del pago quincenal más chico al más grande.
+   Se sigue reportando el plazo (4 / 8 / 12) en user_input, aunque el cliente
+   ahora elija por monto: es lo que valida api/lead.js. */
+const TERMS = [12, 8, 4];
 
 // Quincenas elegidas en el selector; el mock trae 8 preseleccionado.
 let userInput = 8;
@@ -499,8 +413,6 @@ if (!store || !product) {
 }
 
 function render() {
-  const noDownPayment = NO_DOWN_PAYMENT_STORES.has(store.code);
-
   document.title = `${product.name} — Tiendas 3B ${store.name}`;
 
   /* --- Galería --- */
@@ -526,37 +438,16 @@ function render() {
   document.getElementById("productName").textContent = product.name;
   document.getElementById("productSku").textContent = rawProduct;
 
-  /* --- Chips ---
-     specs viene del catálogo cuando existe; si no, se arman con lo que sí
-     tenemos (marca y categoría). El último chip siempre nombra la tienda. */
-  const chips = (product.specs || []).map((s) => chip(s.icon, s.text));
-  if (!product.specs) {
-    if (product.brand) chips.push(chip("brand", product.brand));
-    chips.push(chip("box", product.category));
-  }
-  chips.push(chip("store", `Disponible en ${store.name}`));
-  document.getElementById("specs").innerHTML = chips.join("");
-
-  /* --- Precio ---
-     Las dos cifras salen del factor sobre el monto financiado, que en las
-     tiendas sin enganche es el costo completo. Por eso ya no hay caso
-     "Te lo calculamos en tienda": aplica igual en las siete tiendas. */
-  const priceMain = document.getElementById("priceMainEl");
-  priceMain.innerHTML = `
-    <div class="cap">1er pago de ${INSTALLMENTS} desde</div>
-    <div class="row">
-      <div class="amount">${fmt2(firstPayment(product, store))}</div>
-      <div class="unit">quincenales</div>
-    </div>`;
-
-  const downPaymentEl = document.getElementById("downPaymentValue");
-  if (noDownPayment) {
-    downPaymentEl.textContent = "Sin enganche";
-    downPaymentEl.classList.add("free");
-  } else {
-    downPaymentEl.textContent = fmt(downPayment(product, store));
-  }
-  document.getElementById("totalPaymentValue").textContent = fmt2(totalPayment(product, store));
+  /* --- Selector ---
+     Cada opción muestra el primer pago de ese plazo redondeado a la decena.
+     Es una referencia, no la carátula: el pie de página ya advierte que la
+     cifra depende del plazo y de la fecha del cálculo. */
+  const roundTen = (n) => Math.round(n / 10) * 10;
+  document.getElementById("terms").innerHTML = TERMS.map((n) => `
+    <button type="button" class="term${n === userInput ? " on" : ""}" data-term="${n}"
+            aria-label="${fmt(roundTen(firstPayment(product, store, n)))} quincenales en ${n} quincenas">
+      <div class="n">${fmt(roundTen(firstPayment(product, store, n)))}</div>
+    </button>`).join("");
 }
 
 /* ---- Plazos ---- */
