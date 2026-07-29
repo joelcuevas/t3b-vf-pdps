@@ -44,38 +44,31 @@
     -webkit-font-smoothing: antialiased;
     -webkit-text-size-adjust: 100%;
   }
+  /* El fondo de la página es el gris de la galería, no blanco: el header no
+     tiene fondo propio, así que su franja se lee como parte de la galería en
+     vez de como una banda blanca aparte. Abajo no se nota, porque .sheet
+     crece con flex:1 y tapa todo lo que sigue. */
   .page {
     width: 100%; max-width: 960px; margin: 0 auto; min-height: 100vh;
-    background: #fff;
+    background: #eef0f4;
     display: flex; flex-direction: column;
   }
 
   /* ===== HEADER =====
-     Mismo lenguaje que el hero de la landing: fondo navy, cuña roja en
-     diagonal a la derecha y la segunda mitad de la frase en rosa claro. */
-  /* Logo pegado a la izquierda y frase pegada a la derecha, encima de la cuña.
-     Por eso la frase va toda en blanco y no en el rosa del hero: #ffd8da sobre
-     el rojo da 3.5:1 y la diagonal parte las palabras justo por en medio. */
+     Transparente: solo el logo a la izquierda y la frase a la derecha, sobre
+     el mismo gris de la galería. El color lo pone el logo, que ya es el rojo
+     de la marca. */
   .topbar {
-    position: relative; overflow: hidden;
-    background: var(--navy); color: #fff;
+    background: transparent; color: var(--navy);
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
     padding: 13px 18px;
   }
-  .topbar::before {
-    content: ""; position: absolute; top: 0; right: -20px; bottom: 0;
-    width: 26%;
-    background: var(--red); opacity: 0.95;
-    clip-path: polygon(28% 0, 100% 0, 100% 100%, 0 100%);
-  }
-  .topbar .logo { position: relative; width: 34px; height: 34px; flex-shrink: 0; }
-  /* La frase va siempre en un renglón. El tamaño cede un poco en pantallas
-     muy angostas para que su final —que es la parte rosa— no se meta nunca
-     debajo de la cuña: a 280px queda en 13px y aun así libra el rojo. */
+  .topbar .logo { width: 34px; height: 34px; flex-shrink: 0; }
+  /* Siempre en un renglón: a 280px, la pantalla más angosta que vemos, la
+     frase y el logo ocupan 260 de los 280. */
   .topbar .tagline {
-    position: relative; white-space: nowrap;
-    font-size: clamp(13px, 4.6vw, 15px);
-    font-weight: 800; letter-spacing: -0.02em; line-height: 1.2;
+    white-space: nowrap;
+    font-size: 15px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2;
   }
 
   /* ===== GALERÍA ===== */
@@ -252,7 +245,6 @@
      ==================================================================== */
   @media (min-width: 721px) {
     .topbar { gap: 20px; padding: 18px 44px; }
-    .topbar::before { right: -30px; }
     .topbar .logo { width: 60px; height: 60px; }
     .topbar .tagline { font-size: 26px; }
 
