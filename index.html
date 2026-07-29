@@ -24,8 +24,8 @@
   :root {
     /* La página es de marca y siempre clara: mismo aspecto que el mock y que
        los materiales impresos. Sin esta declaración, el forzado automático de
-       modo oscuro de Chrome en Android invierte los fondos, tumba el
-       mix-blend-mode de la foto y su fondo blanco tapa el logo. */
+       modo oscuro de Chrome en Android invierte los fondos y tumba el
+       mix-blend-mode que integra la foto con el gris de la galería. */
     color-scheme: only light;
 
     --navy: #0a2547;
@@ -44,44 +44,62 @@
     -webkit-font-smoothing: antialiased;
     -webkit-text-size-adjust: 100%;
   }
+  /* El fondo es el gris de la galería, no blanco: es lo que se ve por las
+     esquinas redondeadas del header. Abajo no se nota, porque .sheet crece
+     con flex:1 y tapa todo lo que sigue. */
   .page {
     width: 100%; max-width: 960px; margin: 0 auto; min-height: 100vh;
-    background: #fff;
+    background: #eef0f4;
     display: flex; flex-direction: column;
   }
 
+  /* ===== HEADER =====
+     Mismo lenguaje que el hero de la landing: fondo navy, cuña roja en
+     diagonal a la derecha y la segunda línea de la frase en rosa claro.
+     Las esquinas de abajo repiten el radio de la ficha, para que header y
+     ficha enmarquen la galería con la misma curva. El gris que asoma en esas
+     esquinas es el de .page, que por eso no es blanco. */
+  .topbar {
+    position: relative; overflow: hidden;
+    background: var(--navy); color: #fff;
+    border-radius: 0 0 24px 24px;
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 18px 16px;
+  }
+  /* La cuña ocupa la derecha, donde la frase ya no llega. De ahí que el salto
+     de línea de .tagline sea explícito: no puede quedar a merced del ancho de
+     pantalla, o el texto se metería debajo del rojo. */
+  .topbar::before {
+    content: ""; position: absolute; top: 0; right: -20px; bottom: 0;
+    width: 40%;
+    background: var(--red); opacity: 0.95;
+    clip-path: polygon(28% 0, 100% 0, 100% 100%, 0 100%);
+  }
+  .topbar .logo { position: relative; width: 34px; height: 34px; flex-shrink: 0; }
+  .topbar .tagline {
+    position: relative;
+    font-size: 15px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2;
+  }
+  .topbar .hl { color: #ffd8da; }
+
   /* ===== GALERÍA ===== */
   .gallery {
-    position: relative;
     background: #eef0f4;
     padding: 22px 18px 30px;
     display: grid; place-items: center;
     min-height: min(72vw, 340px);
   }
-  .badge {
-    position: absolute; top: 22px; right: 16px; z-index: 2;
-    display: inline-flex; align-items: center; gap: 6px;
-    background: var(--red); color: #fff;
-    padding: 8px 14px; border-radius: 999px;
-    font-size: 11.5px; font-weight: 800; letter-spacing: 0.04em;
-  }
-  .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #fff; }
-  .brandmark {
-    position: absolute; top: 16px; left: 16px; z-index: 2;
-    width: 36px; height: 36px;
-  }
-  /* multiply funde el fondo blanco del JPEG con el gris de la galería. Si el
-     navegador lo desactiva, el rectángulo se vuelve opaco: el z-index de
-     .brandmark garantiza que aun así el logo quede encima. */
+  /* multiply funde el fondo blanco del JPEG con el gris de la galería. */
   .gallery .photo { width: 100%; max-width: 340px; height: auto; mix-blend-mode: multiply; }
   .gallery .no-photo {
     font-size: 12.5px; font-weight: 800; letter-spacing: 0.1em;
     text-transform: uppercase; color: #b3bac6; text-align: center;
   }
   /* Enlace inválido: no hay producto que mostrar, así que la galería se
-     reduce a la franja del logo en vez de dejar un hueco gris enorme. */
-  /* 74px = top del logo (16) + su alto (36) + el traslape de la ficha (22). */
-  .gallery.empty { min-height: 74px; }
+     reduce a una franja en vez de dejar un hueco gris enorme. Se queda con
+     algo de alto para que la ficha, que sube 22px, tenga sobre qué montarse
+     sin comerse el header. */
+  .gallery.empty { min-height: 46px; }
 
   /* ===== FICHA ===== */
   .sheet {
@@ -237,11 +255,13 @@
      ≥ 721px — las medidas exactas del mock de 960px.
      ==================================================================== */
   @media (min-width: 721px) {
+    .topbar { gap: 20px; padding: 22px 44px 24px; border-radius: 0 0 34px 34px; }
+    .topbar::before { right: -30px; }
+    .topbar .logo { width: 60px; height: 60px; }
+    .topbar .tagline { font-size: 26px; }
+
     .gallery { padding: 40px 40px 32px; min-height: 540px; }
-    .gallery.empty { min-height: 140px; }
-    .badge { top: 45px; right: 32px; gap: 10px; padding: 13px 24px; font-size: 17px; }
-    .badge::before { width: 8px; height: 8px; }
-    .brandmark { top: 30px; left: 32px; width: 76px; height: 76px; }
+    .gallery.empty { min-height: 90px; }
     .gallery .photo { width: 620px; max-width: 100%; }
     .gallery .no-photo { font-size: 15px; }
 
@@ -288,10 +308,14 @@
 <body>
 <div class="page">
 
+  <!-- ===== HEADER ===== -->
+  <header class="topbar">
+    <img class="logo" src="img/brandmark.png" alt="Tiendas 3B" />
+    <span class="tagline">Llévatelo hoy y<br /><span class="hl">paga después</span></span>
+  </header>
+
   <!-- ===== GALERÍA ===== -->
   <section class="gallery">
-    <img class="brandmark" src="img/brandmark.png" alt="Tiendas 3B" />
-    <div class="badge" id="badge" hidden></div>
     <div id="photoBox"></div>
   </section>
 
@@ -426,12 +450,6 @@ function render() {
     im.alt = product.name;
     im.onerror = () => { photoBox.innerHTML = `<div class="no-photo">${product.category}</div>`; };
     photoBox.appendChild(im);
-  }
-
-  if (product.badge) {
-    const b = document.getElementById("badge");
-    b.textContent = product.badge.toUpperCase();
-    b.hidden = false;
   }
 
   /* --- Encabezado --- */
