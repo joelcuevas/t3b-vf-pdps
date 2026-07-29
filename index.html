@@ -59,16 +59,18 @@
      el mismo gris de la galería. El color lo pone el logo, que ya es el rojo
      de la marca. */
   .topbar {
-    background: transparent; color: var(--navy);
+    background: transparent; color: var(--red);
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
     padding: 13px 18px;
   }
-  .topbar .logo { width: 34px; height: 34px; flex-shrink: 0; }
-  /* Siempre en un renglón: a 280px, la pantalla más angosta que vemos, la
-     frase y el logo ocupan 260 de los 280. */
+  .topbar .logo { width: 44px; height: 44px; flex-shrink: 0; }
+  /* Siempre en un renglón. A 17px la frase y el logo ocupan 293 de los 320 de
+     la pantalla más chica que vemos de verdad; el clamp es para las rarezas
+     más angostas que esa, donde cede a 15px en vez de desbordar. */
   .topbar .tagline {
     white-space: nowrap;
-    font-size: 15px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2;
+    font-size: clamp(15px, 5.3vw, 17px);
+    font-weight: 800; letter-spacing: -0.02em; line-height: 1.2;
   }
 
   /* ===== GALERÍA ===== */
@@ -245,8 +247,8 @@
      ==================================================================== */
   @media (min-width: 721px) {
     .topbar { gap: 20px; padding: 18px 44px; }
-    .topbar .logo { width: 60px; height: 60px; }
-    .topbar .tagline { font-size: 26px; }
+    .topbar .logo { width: 76px; height: 76px; }
+    .topbar .tagline { font-size: 30px; }
 
     .gallery { padding: 40px 40px 32px; min-height: 540px; }
     .gallery.empty { min-height: 90px; }
