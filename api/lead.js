@@ -50,10 +50,7 @@ export default async function handler(req, res) {
 
   // Quincenas elegidas en el selector. Si llega algo fuera de la lista se cae
   // al default en vez de escribir basura en la hoja.
-  // user_input e input son los nombres anteriores del campo: un navegador con
-  // la página cacheada los sigue mandando, y sin este respaldo su selección se
-  // perdería en silencio contra el default.
-  const enviado = Number(body.user_input_2 ?? body.user_input ?? body.input);
+  const enviado = Number(body.user_input_2);
   const user_input_2 = TERMS.includes(enviado) ? enviado : TERM_DEFAULT;
 
   // El monto NO se toma del cliente: se recalcula con la misma función que

@@ -60,7 +60,6 @@ const FIELDS = [
 // columna hace que su dato deje de escribirse sin ningún error visible: el
 // resto de la fila entra bien y solo esa celda queda vacía.
 const LEGACY_HEADERS = {
-  user_input_2: ["user_input", "input"],
   utm_source: ["utm"],
 };
 
@@ -111,11 +110,10 @@ function doPost(e) {
       product_name: String(d.product_name || ""),
       utm_source: String(d.utm_source || ""),
       utm_campaign: String(d.utm_campaign || ""),
-      // Número, no texto: user_input_1 son pesos y se suma y promedia en la
-      // hoja. user_input e input son los nombres anteriores del plazo; un
-      // navegador con la página cacheada los sigue mandando.
+      // Número, no texto: son pesos y quincenas, y en la hoja se suman y se
+      // promedian.
       user_input_1: numberOrBlank(d.user_input_1),
-      user_input_2: numberOrBlank(d.user_input_2 || d.user_input || d.input),
+      user_input_2: numberOrBlank(d.user_input_2),
     };
 
     // Escribe celda por celda buscando cada field por NOMBRE de encabezado.
@@ -188,10 +186,8 @@ function json(obj) {
 
    ⚠️ En una hoja QUE YA EXISTE no lo corras si tienes columnas propias de
    seguimiento: escribe los encabezados en las columnas 1..FIELDS.length y
-   pisaría la primera de las tuyas. Para migrar a mano basta con renombrar
-   `user_input` → `user_input_2` e insertar una columna `user_input_1`; el
-   orden no importa, cada campo se busca por nombre de encabezado. Aun sin
-   renombrar nada, LEGACY_HEADERS sigue escribiendo el plazo en `user_input`.
+   pisaría la primera de las tuyas. En ese caso agrega las columnas a mano;
+   el orden no importa, cada campo se busca por nombre de encabezado.
    ---------------------------------------------------------------------- */
 function initSheet() {
   const ss = getSS();

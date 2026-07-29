@@ -86,11 +86,11 @@ la misma función que pinta el botón: así la hoja no puede terminar con una
 cifra que la página nunca mostró. Los dos campos van como **número**, para
 poder sumarlos y promediarlos en la hoja.
 
-> Migrar una hoja que ya existe: renombra `user_input` → `user_input_2` e
-> inserta una columna `user_input_1`. El orden no importa, cada campo se busca
-> por nombre de encabezado. No corras `initSheet()` sobre una hoja con
+> Las columnas las crea `initSheet()`. No lo corras sobre una hoja con
 > columnas propias de seguimiento: escribe los encabezados en las primeras
-> `FIELDS.length` columnas y pisaría la primera de las tuyas.
+> `FIELDS.length` columnas y pisaría la primera de las tuyas; en ese caso
+> agrégalas a mano. El orden no importa, cada campo se busca por nombre de
+> encabezado.
 
 Las columnas de seguimiento que agregues (estatus, notas, quién llamó) van
 **a la derecha de éstas**, o sea a partir de la `K`. El script escribe buscando
