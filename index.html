@@ -44,41 +44,35 @@
     -webkit-font-smoothing: antialiased;
     -webkit-text-size-adjust: 100%;
   }
-  /* El fondo es el gris de la galería, no blanco: es lo que se ve por las
-     esquinas redondeadas del header. Abajo no se nota, porque .sheet crece
-     con flex:1 y tapa todo lo que sigue. */
   .page {
     width: 100%; max-width: 960px; margin: 0 auto; min-height: 100vh;
-    background: #eef0f4;
+    background: #fff;
     display: flex; flex-direction: column;
   }
 
   /* ===== HEADER =====
      Mismo lenguaje que el hero de la landing: fondo navy, cuña roja en
-     diagonal a la derecha y la segunda línea de la frase en rosa claro.
-     Las esquinas de abajo repiten el radio de la ficha, para que header y
-     ficha enmarquen la galería con la misma curva. El gris que asoma en esas
-     esquinas es el de .page, que por eso no es blanco. */
+     diagonal a la derecha y la segunda mitad de la frase en rosa claro. */
   .topbar {
     position: relative; overflow: hidden;
     background: var(--navy); color: #fff;
-    border-radius: 0 0 24px 24px;
     display: flex; align-items: center; gap: 12px;
-    padding: 14px 18px 16px;
+    padding: 13px 18px;
   }
-  /* La cuña ocupa la derecha, donde la frase ya no llega. De ahí que el salto
-     de línea de .tagline sea explícito: no puede quedar a merced del ancho de
-     pantalla, o el texto se metería debajo del rojo. */
   .topbar::before {
     content: ""; position: absolute; top: 0; right: -20px; bottom: 0;
-    width: 40%;
+    width: 26%;
     background: var(--red); opacity: 0.95;
     clip-path: polygon(28% 0, 100% 0, 100% 100%, 0 100%);
   }
   .topbar .logo { position: relative; width: 34px; height: 34px; flex-shrink: 0; }
+  /* La frase va siempre en un renglón. El tamaño cede un poco en pantallas
+     muy angostas para que su final —que es la parte rosa— no se meta nunca
+     debajo de la cuña: a 280px queda en 13px y aun así libra el rojo. */
   .topbar .tagline {
-    position: relative;
-    font-size: 15px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2;
+    position: relative; white-space: nowrap;
+    font-size: clamp(13px, 4.6vw, 15px);
+    font-weight: 800; letter-spacing: -0.02em; line-height: 1.2;
   }
   .topbar .hl { color: #ffd8da; }
 
@@ -255,7 +249,7 @@
      ≥ 721px — las medidas exactas del mock de 960px.
      ==================================================================== */
   @media (min-width: 721px) {
-    .topbar { gap: 20px; padding: 22px 44px 24px; border-radius: 0 0 34px 34px; }
+    .topbar { gap: 20px; padding: 18px 44px; }
     .topbar::before { right: -30px; }
     .topbar .logo { width: 60px; height: 60px; }
     .topbar .tagline { font-size: 26px; }
@@ -311,7 +305,7 @@
   <!-- ===== HEADER ===== -->
   <header class="topbar">
     <img class="logo" src="img/brandmark.png" alt="Tiendas 3B" />
-    <span class="tagline">Llévatelo hoy y<br /><span class="hl">paga después</span></span>
+    <span class="tagline">Llévatelo hoy y <span class="hl">paga después</span></span>
   </header>
 
   <!-- ===== GALERÍA ===== -->
