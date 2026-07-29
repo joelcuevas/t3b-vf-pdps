@@ -152,7 +152,8 @@ para poder restituirlos.
 La única cifra que queda es el **pago quincenal**, y vive dentro del selector:
 la pregunta es "¿Cuánto quieres pagar a la quincena?" y cada botón es el pago
 de un plazo —12, 8 y 4 quincenas, en ese orden, del más chico al más grande—
-redondeado a la decena más cercana. El botón no dice el plazo; el que se
+redondeado **hacia arriba** a la decena, para que la cifra publicada nunca
+quede por debajo de la que cobra avafin. El botón no dice el plazo; el que se
 elige se sigue reportando en `user_input`.
 
 ## El pago quincenal y el total no se capturan
@@ -174,7 +175,8 @@ pago 18/08/2026): las 12 filas cuadran con diferencia máxima de $0.09.
 
 Los días al primer pago (`d1`) son lo único que cambia entre cotizaciones: son
 los que hay entre el cálculo y la fecha que elige el cliente. Por eso el monto
-del selector va redondeado a la decena: es una referencia, no la carátula.
+del selector va redondeado hacia arriba a la decena: es una referencia, no la
+carátula, y de ese lado el error nunca juega en contra del cliente.
 
 > Antes estas cifras se capturaban a mano desde una hoja del negocio. Esa hoja
 > venía de una corrida con `d1= 19`, así que **todo lo publicado estaba 6.8%

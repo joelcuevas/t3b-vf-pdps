@@ -53,11 +53,16 @@
   /* ===== HEADER =====
      Mismo lenguaje que el hero de la landing: fondo navy, cuña roja en
      diagonal a la derecha y la segunda mitad de la frase en rosa claro. */
+  /* Logo pegado a la izquierda y frase a la derecha. El padding derecho no es
+     fijo sino calc(26% − 8px): 26% es el ancho de la cuña y 20px su corrimiento
+     fuera del borde, así que la cuenta deja la frase 12px antes del vértice
+     rojo sea cual sea el ancho de pantalla. Con un valor fijo, la cuña —que es
+     porcentual— la alcanzaba en cuanto la pantalla crecía. */
   .topbar {
     position: relative; overflow: hidden;
     background: var(--navy); color: #fff;
-    display: flex; align-items: center; gap: 12px;
-    padding: 13px 18px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 13px calc(26% - 8px) 13px 18px;
   }
   .topbar::before {
     content: ""; position: absolute; top: 0; right: -20px; bottom: 0;
@@ -249,7 +254,8 @@
      ≥ 721px — las medidas exactas del mock de 960px.
      ==================================================================== */
   @media (min-width: 721px) {
-    .topbar { gap: 20px; padding: 18px 44px; }
+    /* -18px porque acá la cuña se corre 30px, no 20. */
+    .topbar { gap: 20px; padding: 18px calc(26% - 18px) 18px 44px; }
     .topbar::before { right: -30px; }
     .topbar .logo { width: 60px; height: 60px; }
     .topbar .tagline { font-size: 26px; }
@@ -452,13 +458,13 @@ function render() {
 
   /* --- Selector ---
      Cada opción muestra el primer pago de ese plazo redondeado a la decena.
-     Es una referencia, no la carátula: el pie de página ya advierte que la
-     cifra depende del plazo y de la fecha del cálculo. */
-  const roundTen = (n) => Math.round(n / 10) * 10;
+     Es una referencia, no la carátula, así que el redondeo va hacia ARRIBA:
+     así la cifra publicada nunca queda por debajo de lo que cobra avafin. */
+  const ceilTen = (n) => Math.ceil(n / 10) * 10;
   document.getElementById("terms").innerHTML = TERMS.map((n) => `
     <button type="button" class="term${n === userInput ? " on" : ""}" data-term="${n}"
-            aria-label="${fmt(roundTen(firstPayment(product, store, n)))} quincenales en ${n} quincenas">
-      <div class="n">${fmt(roundTen(firstPayment(product, store, n)))}</div>
+            aria-label="${fmt(ceilTen(firstPayment(product, store, n)))} quincenales en ${n} quincenas">
+      <div class="n">${fmt(ceilTen(firstPayment(product, store, n)))}</div>
     </button>`).join("");
 }
 
