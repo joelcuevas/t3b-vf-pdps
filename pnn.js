@@ -2,7 +2,8 @@
    Clasificación de teléfonos contra el Plan Nacional de Numeración
    -------------------------------------------------------------------------
    Responde si un número de 10 dígitos cae en algún rango que el IFT tenga
-   asignado a una operadora, y si ese rango es móvil o fijo.
+   asignado a una operadora, y si ese rango es móvil o fijo. Las etiquetas
+   que devuelve son las que se ven en la hoja: "Móvil", "Fijo", "Inválido".
 
    Lo que NO dice: si la línea existe, si está activa o de quién es. El PNN
    asigna bloques a operadoras, no números a personas. Sirve para separar
@@ -19,19 +20,22 @@ import { TODOS, MOVILES } from "./pnn-data.js";
 const todos = expand(TODOS);
 const moviles = expand(MOVILES);
 
-/* Devuelve "movil", "fijo" o "no_asignado". Un número que no traiga
-   exactamente 10 dígitos se reporta como "invalido": api/lead.js ya lo
-   rechaza antes, así que ese valor no debería llegar nunca a la hoja. */
+/* Devuelve "Móvil", "Fijo" o "Inválido" — tal cual se escriben en la hoja.
+
+   "Inválido" cubre los dos modos de fallo: que el número no caiga en ningún
+   rango asignado, y que no traiga 10 dígitos. El segundo no llega a la hoja
+   porque api/lead.js lo rechaza antes con un 400, así que en la práctica la
+   columna solo distingue asignado de no asignado. */
 export function clasificar(phone) {
   const d = String(phone || "").replace(/\D/g, "");
-  if (d.length !== 10) return "invalido";
+  if (d.length !== 10) return "Inválido";
 
   const n = Number(d);
   // MOVILES es subconjunto de TODOS, así que basta una búsqueda para la
   // mayoría de los casos: si es móvil, ya no hay que mirar el otro índice.
-  if (contiene(moviles, n)) return "movil";
-  if (contiene(todos, n)) return "fijo";
-  return "no_asignado";
+  if (contiene(moviles, n)) return "Móvil";
+  if (contiene(todos, n)) return "Fijo";
+  return "Inválido";
 }
 
 /* ---------------------------------------------------------------------- */

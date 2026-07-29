@@ -51,7 +51,7 @@ const FIELDS = [
   "id",
   "created_at",
   "phone",
-  "phone_valid",   // "movil" / "fijo" / "no_asignado", contra el PNN del IFT
+  "phone_valid",   // "Móvil" / "Fijo" / "Inválido", contra el PNN del IFT
   "store_id",
   "store_name",
   "product_id",

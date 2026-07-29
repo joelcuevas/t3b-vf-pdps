@@ -68,7 +68,7 @@ y no ofrece el formulario.
 | `id` | secuencial, lo asigna Apps Script (`L-000001`) |
 | `created_at` | lo estampa Apps Script, zona horaria de la hoja |
 | `phone` | del formulario, 10 dígitos |
-| `phone_valid` | `movil` / `fijo` / `no_asignado`, contra el PNN del IFT (ver abajo) |
+| `phone_valid` | `Móvil` / `Fijo` / `Inválido`, contra el PNN del IFT (ver abajo) |
 | `store_id` / `store_name` | de `store_id` en la URL, resuelto **en el servidor** |
 | `product_id` / `product_name` | de `product_id` en la URL, resuelto **en el servidor** |
 | `utm_source` | de `utm_source` en la URL; vacío si no viene |
@@ -119,9 +119,9 @@ hoja:
 
 | Valor | Significa |
 |---|---|
-| `movil` | cae en un rango asignado como CPP o MPP |
-| `fijo` | cae en un rango asignado, pero de línea fija |
-| `no_asignado` | no cae en ningún rango asignado a ninguna operadora |
+| `Móvil` | cae en un rango asignado como CPP o MPP |
+| `Fijo` | cae en un rango asignado, pero de línea fija |
+| `Inválido` | no cae en ningún rango asignado a ninguna operadora |
 
 **No rechaza nada.** El lead entra igual y el juicio queda en la hoja, para
 poder medir cuántos números malos llegan antes de decidir si vale la pena
@@ -132,7 +132,7 @@ Dos límites que conviene tener presentes al leer la columna:
 - El PNN dice que el bloque **está asignado a una operadora**, no que la línea
   exista o esté activa. Filtra tecleos y números inventados, no números
   apagados.
-- La portabilidad no mueve un número de rango, así que `movil` / `fijo` sigue
+- La portabilidad no mueve un número de rango, así que `Móvil` / `Fijo` sigue
   siendo confiable; lo que ya no es confiable es la operadora, y por eso no se
   guarda.
 

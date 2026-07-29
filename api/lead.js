@@ -42,7 +42,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ ok: false, error: "invalid_phone" });
   }
 
-  // Contra el Plan Nacional de Numeración: "movil", "fijo" o "no_asignado".
+  // Contra el Plan Nacional de Numeración: "Móvil", "Fijo" o "Inválido".
   // A propósito NO rechaza nada — el lead entra igual y el juicio queda en la
   // hoja, para poder medir cuántos números malos llegan antes de decidir si
   // vale la pena bloquearlos en la página.
