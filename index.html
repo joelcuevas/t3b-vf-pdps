@@ -53,16 +53,14 @@
   /* ===== HEADER =====
      Mismo lenguaje que el hero de la landing: fondo navy, cuña roja en
      diagonal a la derecha y la segunda mitad de la frase en rosa claro. */
-  /* Logo pegado a la izquierda y frase a la derecha. El padding derecho no es
-     fijo sino calc(26% − 8px): 26% es el ancho de la cuña y 20px su corrimiento
-     fuera del borde, así que la cuenta deja la frase 12px antes del vértice
-     rojo sea cual sea el ancho de pantalla. Con un valor fijo, la cuña —que es
-     porcentual— la alcanzaba en cuanto la pantalla crecía. */
+  /* Logo pegado a la izquierda y frase pegada a la derecha, encima de la cuña.
+     Por eso la frase va toda en blanco y no en el rosa del hero: #ffd8da sobre
+     el rojo da 3.5:1 y la diagonal parte las palabras justo por en medio. */
   .topbar {
     position: relative; overflow: hidden;
     background: var(--navy); color: #fff;
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 13px calc(26% - 8px) 13px 18px;
+    padding: 13px 18px;
   }
   .topbar::before {
     content: ""; position: absolute; top: 0; right: -20px; bottom: 0;
@@ -79,7 +77,6 @@
     font-size: clamp(13px, 4.6vw, 15px);
     font-weight: 800; letter-spacing: -0.02em; line-height: 1.2;
   }
-  .topbar .hl { color: #ffd8da; }
 
   /* ===== GALERÍA ===== */
   .gallery {
@@ -254,8 +251,7 @@
      ≥ 721px — las medidas exactas del mock de 960px.
      ==================================================================== */
   @media (min-width: 721px) {
-    /* -18px porque acá la cuña se corre 30px, no 20. */
-    .topbar { gap: 20px; padding: 18px calc(26% - 18px) 18px 44px; }
+    .topbar { gap: 20px; padding: 18px 44px; }
     .topbar::before { right: -30px; }
     .topbar .logo { width: 60px; height: 60px; }
     .topbar .tagline { font-size: 26px; }
@@ -311,7 +307,7 @@
   <!-- ===== HEADER ===== -->
   <header class="topbar">
     <img class="logo" src="img/brandmark.png" alt="Tiendas 3B" />
-    <span class="tagline">Llévatelo hoy y <span class="hl">paga después</span></span>
+    <span class="tagline">Llévatelo hoy y paga después</span>
   </header>
 
   <!-- ===== GALERÍA ===== -->
@@ -407,7 +403,7 @@
 /* Esta versión de la ficha no muestra el bloque de precio (primer pago,
    enganche, total a pagar) ni los chips de detalle. La única cifra que queda
    es el pago quincenal de cada opción del selector. */
-import { PRODUCTS, findStore, firstPayment, avafinUrl } from "./catalog.js";
+import { PRODUCTS, findStore, displayedPayment, avafinUrl } from "./catalog.js";
 
 const fmt = (n) => "$" + Number(n).toLocaleString("es-MX", { maximumFractionDigits: 0 });
 
@@ -421,8 +417,9 @@ const store = findStore(rawStore);
 const product = PRODUCTS[rawProduct];
 
 /* Plazos que ofrece el selector, del pago quincenal más chico al más grande.
-   Se sigue reportando el plazo (4 / 8 / 12) en user_input, aunque el cliente
-   ahora elija por monto: es lo que valida api/lead.js. */
+   El cliente elige por monto, pero lo que viaja al servidor es el plazo: de
+   ahí se deriva el monto para la hoja, con la misma función que pinta el
+   botón. Ver api/lead.js. */
 const TERMS = [12, 8, 4];
 
 // Quincenas elegidas en el selector; el mock trae 8 preseleccionado.
@@ -457,14 +454,12 @@ function render() {
   document.getElementById("productSku").textContent = rawProduct;
 
   /* --- Selector ---
-     Cada opción muestra el primer pago de ese plazo redondeado a la decena.
-     Es una referencia, no la carátula, así que el redondeo va hacia ARRIBA:
-     así la cifra publicada nunca queda por debajo de lo que cobra avafin. */
-  const ceilTen = (n) => Math.ceil(n / 10) * 10;
+     Cada opción es el primer pago de ese plazo, tal como lo publica
+     displayedPayment(): a la decena de arriba. */
   document.getElementById("terms").innerHTML = TERMS.map((n) => `
     <button type="button" class="term${n === userInput ? " on" : ""}" data-term="${n}"
-            aria-label="${fmt(ceilTen(firstPayment(product, store, n)))} quincenales en ${n} quincenas">
-      <div class="n">${fmt(ceilTen(firstPayment(product, store, n)))}</div>
+            aria-label="${fmt(displayedPayment(product, store, n))} quincenales en ${n} quincenas">
+      <div class="n">${fmt(displayedPayment(product, store, n))}</div>
     </button>`).join("");
 }
 
@@ -543,7 +538,7 @@ form.addEventListener("submit", async (e) => {
         store_id: store.code,
         product_id: rawProduct,
         utm_source: utmSource,
-        user_input: userInput,
+        user_input_2: userInput,
       }),
       keepalive: true, // sobrevive a la navegación que viene enseguida
     });

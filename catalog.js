@@ -163,7 +163,7 @@ export const VALIDITY = "172800";
 /* Identifica ESTA variante de landing en los reportes. No viene de la URL: lo
    pone el servidor, para que no se pueda falsear desde el navegador. Cuando
    exista una segunda variante, cada página deberá declarar la suya. */
-export const UTM_CAMPAIGN = "dangler_installments";
+export const UTM_CAMPAIGN = "dangler_select_payment";
 
 export const AVAFIN_BASE = "https://www.avafin.com.mx/tiendas";
 
@@ -237,6 +237,14 @@ export const firstPayment = (p, store, n = INSTALLMENTS) =>
 
 export const totalPayment = (p, store, n = INSTALLMENTS) =>
   round2((Number(loanAmount(p, store)) / 100) * totalFactor(n));
+
+/* La cifra tal como se publica en el selector: a la decena de ARRIBA, para
+   que nunca quede por debajo de lo que cobra avafin. Vive aquí y no en la
+   página porque api/lead.js la vuelve a calcular para escribirla en la hoja:
+   si cada lado hiciera su propio redondeo, el lead podría no coincidir con
+   el botón que tocó el cliente. */
+export const displayedPayment = (p, store, n = INSTALLMENTS) =>
+  Math.ceil(firstPayment(p, store, n) / 10) * 10;
 
 /* -------------------------------------------------------------------------
    URL de avafin — mismo formato y mismos parámetros que build_long_url() en

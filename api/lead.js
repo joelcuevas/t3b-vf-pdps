@@ -14,12 +14,12 @@
      SHEET_SECRET      — mismo valor que la constante SECRET del script
    ======================================================================== */
 
-import { PRODUCTS, findStore, UTM_CAMPAIGN } from "../catalog.js";
+import { PRODUCTS, findStore, displayedPayment, UTM_CAMPAIGN } from "../catalog.js";
 
 const TIMEOUT_MS = 8000;
 const ATTEMPTS = 3;
-const USER_INPUTS = [4, 8, 12];
-const USER_INPUT_DEFAULT = 8;
+const TERMS = [4, 8, 12];
+const TERM_DEFAULT = 8;
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -50,11 +50,16 @@ export default async function handler(req, res) {
 
   // Quincenas elegidas en el selector. Si llega algo fuera de la lista se cae
   // al default en vez de escribir basura en la hoja.
-  // body.input es el nombre anterior del campo: un navegador con la página
-  // cacheada lo sigue mandando, y sin este respaldo su selección se
+  // user_input e input son los nombres anteriores del campo: un navegador con
+  // la página cacheada los sigue mandando, y sin este respaldo su selección se
   // perdería en silencio contra el default.
-  const enviado = Number(body.user_input ?? body.input);
-  const user_input = USER_INPUTS.includes(enviado) ? enviado : USER_INPUT_DEFAULT;
+  const enviado = Number(body.user_input_2 ?? body.user_input ?? body.input);
+  const user_input_2 = TERMS.includes(enviado) ? enviado : TERM_DEFAULT;
+
+  // El monto NO se toma del cliente: se recalcula con la misma función que
+  // pinta el botón, así la hoja no puede terminar con una cifra que la página
+  // nunca mostró. Mismo criterio que store_name y product_name.
+  const user_input_1 = displayedPayment(product, store, user_input_2);
 
   // utm_source es text libre que viene de la URL: se limpia antes de escribirlo.
   const utm_source = String(body.utm_source || "")
@@ -71,7 +76,8 @@ export default async function handler(req, res) {
     utm_source,
     // No se toma del cliente: identifica la variante de landing y se fija aquí.
     utm_campaign: UTM_CAMPAIGN,
-    user_input,
+    user_input_1, // monto quincenal del botón elegido, en pesos
+    user_input_2, // quincenas de ese botón
   };
 
   // --- Escritura en la hoja --------------------------------------------

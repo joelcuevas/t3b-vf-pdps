@@ -61,7 +61,7 @@ y no ofrece el formulario.
 ## Columnas de la hoja
 
 `id · created_at · phone · store_id · store_name · product_id · product_name ·`
-`utm_source · utm_campaign · user_input`
+`utm_source · utm_campaign · user_input_1 · user_input_2`
 
 | Columna | De dónde sale |
 |---|---|
@@ -71,13 +71,26 @@ y no ofrece el formulario.
 | `store_id` / `store_name` | de `store_id` en la URL, resuelto **en el servidor** |
 | `product_id` / `product_name` | de `product_id` en la URL, resuelto **en el servidor** |
 | `utm_source` | de `utm_source` en la URL; vacío si no viene |
-| `utm_campaign` | fijo, identifica la variante de landing. Hoy `dangler_installments` |
-| `user_input` | quincenas del pago elegido en el selector: 4, 8 o 12 (default 8) |
+| `utm_campaign` | fijo, identifica la variante de landing. Hoy `dangler_select_payment` |
+| `user_input_1` | monto quincenal del botón elegido, en pesos (`810`), **recalculado en el servidor** |
+| `user_input_2` | quincenas de ese botón: 4, 8 o 12 (default 8) |
 
 `utm_campaign` **no se toma del navegador**: lo pone `api/lead.js` desde la
 constante `UTM_CAMPAIGN` de `catalog.js`, para que no se pueda falsear desde
 la URL. Cuando exista una segunda variante de landing, cada página declara la
 suya.
+
+`user_input_1` tampoco viaja desde el navegador. La página manda solo el
+plazo y el servidor deriva el monto con `displayedPayment()` de `catalog.js`,
+la misma función que pinta el botón: así la hoja no puede terminar con una
+cifra que la página nunca mostró. Los dos campos van como **número**, para
+poder sumarlos y promediarlos en la hoja.
+
+> Migrar una hoja que ya existe: renombra `user_input` → `user_input_2` e
+> inserta una columna `user_input_1`. El orden no importa, cada campo se busca
+> por nombre de encabezado. No corras `initSheet()` sobre una hoja con
+> columnas propias de seguimiento: escribe los encabezados en las primeras
+> `FIELDS.length` columnas y pisaría la primera de las tuyas.
 
 Las columnas de seguimiento que agregues (estatus, notas, quién llamó) van
 **a la derecha de éstas**, o sea a partir de la `K`. El script escribe buscando
@@ -153,8 +166,8 @@ La única cifra que queda es el **pago quincenal**, y vive dentro del selector:
 la pregunta es "¿Cuánto quieres pagar a la quincena?" y cada botón es el pago
 de un plazo —12, 8 y 4 quincenas, en ese orden, del más chico al más grande—
 redondeado **hacia arriba** a la decena, para que la cifra publicada nunca
-quede por debajo de la que cobra avafin. El botón no dice el plazo; el que se
-elige se sigue reportando en `user_input`.
+quede por debajo de la que cobra avafin. El botón no dice el plazo: el monto
+elegido se reporta en `user_input_1` y su plazo en `user_input_2`.
 
 ## El pago quincenal y el total no se capturan
 

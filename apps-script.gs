@@ -52,14 +52,15 @@ const FIELDS = [
   "product_name",
   "utm_source",    // de la URL
   "utm_campaign",  // variante de landing; la fija el servidor
-  "user_input",    // quincenas elegidas en el selector (4 / 8 / 12)
+  "user_input_1",  // monto quincenal del botón elegido, en pesos (480)
+  "user_input_2",  // quincenas de ese botón (4 / 8 / 12)
 ];
 
 // Encabezados anteriores que se siguen aceptando. Sin esto, renombrar una
 // columna hace que su dato deje de escribirse sin ningún error visible: el
 // resto de la fila entra bien y solo esa celda queda vacía.
 const LEGACY_HEADERS = {
-  user_input: ["input"],
+  user_input_2: ["user_input", "input"],
   utm_source: ["utm"],
 };
 
@@ -110,9 +111,11 @@ function doPost(e) {
       product_name: String(d.product_name || ""),
       utm_source: String(d.utm_source || ""),
       utm_campaign: String(d.utm_campaign || ""),
-      // d.input es el nombre anterior; un navegador con la página cacheada
-      // lo sigue mandando.
-      user_input: d.user_input || d.input || "",
+      // Número, no texto: user_input_1 son pesos y se suma y promedia en la
+      // hoja. user_input e input son los nombres anteriores del plazo; un
+      // navegador con la página cacheada los sigue mandando.
+      user_input_1: numberOrBlank(d.user_input_1),
+      user_input_2: numberOrBlank(d.user_input_2 || d.user_input || d.input),
     };
 
     // Escribe celda por celda buscando cada field por NOMBRE de encabezado.
@@ -137,6 +140,14 @@ function doPost(e) {
   } finally {
     lock.releaseLock();
   }
+}
+
+/* Celda numérica, o vacía si no llegó nada usable. Devolver "" en vez de 0
+   evita que un lead sin dato se cuente como un pago de cero. */
+function numberOrBlank(v) {
+  if (v === undefined || v === null || v === "") return "";
+  const n = Number(v);
+  return isNaN(n) ? "" : n;
 }
 
 /* Última row que tiene algo en la columna `id`. */
@@ -174,6 +185,13 @@ function json(obj) {
 /* -------------------------------------------------------------------------
    Ejecuta esto UNA VEZ desde el editor para crear la hoja con sus
    encabezados en el orden correcto.
+
+   ⚠️ En una hoja QUE YA EXISTE no lo corras si tienes columnas propias de
+   seguimiento: escribe los encabezados en las columnas 1..FIELDS.length y
+   pisaría la primera de las tuyas. Para migrar a mano basta con renombrar
+   `user_input` → `user_input_2` e insertar una columna `user_input_1`; el
+   orden no importa, cada campo se busca por nombre de encabezado. Aun sin
+   renombrar nada, LEGACY_HEADERS sigue escribiendo el plazo en `user_input`.
    ---------------------------------------------------------------------- */
 function initSheet() {
   const ss = getSS();
