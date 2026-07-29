@@ -99,7 +99,8 @@ export const PRODUCTS = {
              cost: "279900", loan: "251900", badge: "Nuevo",
              av: "MULTIESTILIZADOR UNIQ 6 PCS" },
 
-  /* --- Pendientes: falta primer pago del negocio y falta foto. Ver README. --- */
+  /* --- Pendientes: falta primer pago del negocio. Los dos primeros también
+         siguen sin foto (img: false). Ver README. --- */
 
   "31618": { name: "Horno Microondas 1.5 ft³", category: "Cocina",
              cost: "249900", loan: "224900", img: false,
@@ -110,15 +111,15 @@ export const PRODUCTS = {
              av: "JUNS26 Frigobar 1.7 Acero" },
 
   "32275": { name: 'Pantalla 43" Roku Frameless', category: "Pantallas",
-             cost: "369900", loan: "332900", img: false, badge: "Nuevo",
+             cost: "369900", loan: "332900", badge: "Nuevo",
              av: 'Pantalla 43" JV Roku Frameless' },
 
   "32633": { name: "Curl Secret Rizador", category: "Hogar",
-             cost: "159900", loan: "143900", img: false, badge: "Nuevo",
+             cost: "159900", loan: "143900", badge: "Nuevo",
              av: "Curl Secret Rizador" },
 
   "27386": { name: "Refrigerador 7.3 pies WWH", brand: "White Westinghouse", category: "Línea blanca",
-             cost: "449900", loan: "404900", img: false, badge: "Nuevo",
+             cost: "449900", loan: "404900", badge: "Nuevo",
              av: "Refrigerador 7.3 pies WWH" },
 };
 

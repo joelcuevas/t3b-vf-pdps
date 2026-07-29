@@ -183,12 +183,35 @@ Variables de entorno (Production y Preview):
 
 Sin build step: estático + una función en `api/`.
 
+## Imágenes
+
+`landing/update_images.py` es el único camino para meter una foto al catálogo.
+Normaliza a **JPEG sobre blanco, lienzo cuadrado, máx 800px**, y escribe en
+`landing/img/{clave}.jpg`; de ahí hay que copiar a `pdp/img/` (las dos carpetas
+se mantienen idénticas).
+
+```
+python3 landing/update_images.py 32275.jpg          # una vista
+python3 landing/update_images.py --pair 27386 a.png b.jpg   # dos lado a lado
+python3 landing/update_images.py --recheck          # audita y arregla img/*.jpg
+```
+
+El lienzo cuadrado no es cosmético: `.gallery .photo` dibuja la foto con ancho
+fijo y `height: auto`, así que una foto vertical se renderiza mucho más alta que
+el resto y empuja el precio fuera de la vista. El relleno blanco no se ve porque
+la galería usa `mix-blend-mode: multiply`.
+
+Para un producto muy vertical (un refri) una sola vista deja el cuadro casi
+vacío a los lados; `--pair` acomoda dos vistas juntas, que suman un aspecto
+cercano a 1.0 y llenan el cuadrado. Recorta el blanco de cada fuente antes de
+escalar para que las dos salgan del mismo tamaño.
+
 ## Datos pendientes
 
 `catalog.js` es el espejo de `PRODUCTS`/`STORES` en
 `qrs/create_store_full_setup.py`. Falta:
 
-- **Fotos de 5 productos** (`32275`, `32633`, `27386`, `31618`, `31619`): falta
+- **Fotos de 2 productos** (`31618`, `31619`): falta
   `img/{clave}.jpg`, se muestra un placeholder con la categoría.
 - **Fichas técnicas**: el mock muestra chips reales del producto (`1100 W`,
   `1.3 ft³ · 36.8 L`, `Negro espejo`). Solo `30742` los tiene cargados, en el
