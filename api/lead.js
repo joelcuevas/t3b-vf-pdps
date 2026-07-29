@@ -15,6 +15,7 @@
    ======================================================================== */
 
 import { PRODUCTS, findStore, displayedPayment, UTM_CAMPAIGN } from "../catalog.js";
+import { clasificar } from "../pnn.js";
 
 const TIMEOUT_MS = 8000;
 const ATTEMPTS = 3;
@@ -41,6 +42,12 @@ export default async function handler(req, res) {
     return res.status(400).json({ ok: false, error: "invalid_phone" });
   }
 
+  // Contra el Plan Nacional de Numeración: "movil", "fijo" o "no_asignado".
+  // A propósito NO rechaza nada — el lead entra igual y el juicio queda en la
+  // hoja, para poder medir cuántos números malos llegan antes de decidir si
+  // vale la pena bloquearlos en la página.
+  const phone_valid = clasificar(phone);
+
   const store = findStore(body.store_id);
   if (!store) return res.status(400).json({ ok: false, error: "invalid_store" });
 
@@ -66,6 +73,7 @@ export default async function handler(req, res) {
 
   const lead = {
     phone,
+    phone_valid,
     store_id: store.code,
     store_name: store.name,
     product_id: productId,

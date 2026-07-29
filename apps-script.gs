@@ -3,6 +3,11 @@
    -------------------------------------------------------------------------
    Pegar en la hoja: Extensiones → Apps Script → reemplazar Código.gs.
 
+   Hoja nueva: corre initSheet() UNA VEZ desde el editor y te crea la pestaña
+   "Leads" con sus encabezados. Después agrega a la derecha las columnas de
+   seguimiento que quieras (estatus, notas, quién llamó…): el script nunca
+   las toca porque busca cada campo por NOMBRE de encabezado, no por posición.
+
    Implementar → Nueva implementación → Aplicación web
        Ejecutar como:      Yo
        Quién tiene acceso: Cualquier persona
@@ -18,7 +23,7 @@
 // Debe coincidir con la variable SHEET_SECRET en Vercel.
 const SECRET = "PEGA_AQUI_EL_MISMO_SECRETO_QUE_EN_VERCEL";
 
-const SHEET_NAME = "leads";
+const SHEET_NAME = "Leads";
 
 // Déjalo vacío si el script está DENTRO de la hoja (Extensiones → Apps Script).
 // Si lo creaste como proyecto suelto desde script.google.com, pega aquí el id
@@ -46,6 +51,7 @@ const FIELDS = [
   "id",
   "created_at",
   "phone",
+  "phone_valid",   // "movil" / "fijo" / "no_asignado", contra el PNN del IFT
   "store_id",
   "store_name",
   "product_id",
@@ -104,6 +110,9 @@ function doPost(e) {
       id: id,
       created_at: new Date(),
       phone: "'" + String(d.phone || ""), // apóstrofo: conserva el 0 inicial
+      // Lo calcula api/lead.js contra el Plan Nacional de Numeración. Si
+      // llegara vacío es que el lead lo mandó una versión vieja del handler.
+      phone_valid: String(d.phone_valid || ""),
       store_id: String(d.store_id || ""),
       store_name: String(d.store_name || ""),
       product_id: String(d.product_id || ""),

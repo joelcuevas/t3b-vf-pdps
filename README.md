@@ -60,14 +60,15 @@ y no ofrece el formulario.
 
 ## Columnas de la hoja
 
-`id · created_at · phone · store_id · store_name · product_id · product_name ·`
-`utm_source · utm_campaign · user_input_1 · user_input_2`
+`id · created_at · phone · phone_valid · store_id · store_name · product_id ·`
+`product_name · utm_source · utm_campaign · user_input_1 · user_input_2`
 
 | Columna | De dónde sale |
 |---|---|
 | `id` | secuencial, lo asigna Apps Script (`L-000001`) |
 | `created_at` | lo estampa Apps Script, zona horaria de la hoja |
 | `phone` | del formulario, 10 dígitos |
+| `phone_valid` | `movil` / `fijo` / `no_asignado`, contra el PNN del IFT (ver abajo) |
 | `store_id` / `store_name` | de `store_id` en la URL, resuelto **en el servidor** |
 | `product_id` / `product_name` | de `product_id` en la URL, resuelto **en el servidor** |
 | `utm_source` | de `utm_source` en la URL; vacío si no viene |
@@ -93,7 +94,7 @@ poder sumarlos y promediarlos en la hoja.
 > encabezado.
 
 Las columnas de seguimiento que agregues (estatus, notas, quién llamó) van
-**a la derecha de éstas**, o sea a partir de la `K`. El script escribe buscando
+**a la derecha de éstas**, o sea a partir de la `M`. El script escribe buscando
 cada campo por nombre de encabezado y omite los que no encuentra, así que
 puedes reordenar columnas, insertarlas o quitarlas sin romper la inserción —
 solo pierdes el dato de la que falte. Dos reglas para no romperla:
@@ -101,7 +102,7 @@ solo pierdes el dato de la que falte. Dos reglas para no romperla:
 1. **No arrastres fórmulas hacia abajo** en columnas vacías. Usa
    `=ARRAYFORMULA(IF(A2:A="", "", …))` en la fila 1.
 2. Aplica validación de datos y formato condicional a la **columna completa**
-   (`K2:K`, no `K2:K500`) para que las filas nuevas los hereden.
+   (`M2:M`, no `M2:M500`) para que las filas nuevas los hereden.
 
 Un teléfono repetido genera un lead nuevo cada vez: es intencional, la hoja es
 una bitácora. Para ver el número de contacto sin perder filas:
@@ -110,6 +111,48 @@ una bitácora. Para ver el número de contacto sin perder filas:
 =ARRAYFORMULA(IF(C2:C="", "", COUNTIFS(C$2:C, C2:C, B$2:B, "<="&B2:B)))
 ```
 
+## Validación del teléfono (`phone_valid`)
+
+La página solo exige 10 dígitos. Además de eso, `api/lead.js` compara el número
+contra el **Plan Nacional de Numeración** del IFT y escribe el resultado en la
+hoja:
+
+| Valor | Significa |
+|---|---|
+| `movil` | cae en un rango asignado como CPP o MPP |
+| `fijo` | cae en un rango asignado, pero de línea fija |
+| `no_asignado` | no cae en ningún rango asignado a ninguna operadora |
+
+**No rechaza nada.** El lead entra igual y el juicio queda en la hoja, para
+poder medir cuántos números malos llegan antes de decidir si vale la pena
+bloquearlos en la página.
+
+Dos límites que conviene tener presentes al leer la columna:
+
+- El PNN dice que el bloque **está asignado a una operadora**, no que la línea
+  exista o esté activa. Filtra tecleos y números inventados, no números
+  apagados.
+- La portabilidad no mueve un número de rango, así que `movil` / `fijo` sigue
+  siendo confiable; lo que ya no es confiable es la operadora, y por eso no se
+  guarda.
+
+### Actualizar el padrón
+
+El IFT republica el archivo cada semana. El CSV crudo trae ~178,000 rangos y
+pesa 15 MB, así que **no se commitea** (está en `.gitignore`): se compila a
+`pnn-data.js`, que fusiona los rangos contiguos hasta dejar ~22,500 intervalos
+delta-codificados, unos 270 KB.
+
+```
+# bajar el CSV a la raíz del proyecto desde
+# https://sns.ift.org.mx:8081/sns-frontend/planes-numeracion/descarga-publica.xhtml
+npm run build:pnn        # regenera pnn-data.js
+```
+
+`pnn.js` lo expande al arrancar (~7 ms una vez por instancia) y resuelve cada
+consulta con dos búsquedas binarias (~65 ns). Frente al POST a Apps Script, que
+tarda del orden de un segundo, el costo por lead es irrelevante.
+
 ## Configuración
 
 ### Google
@@ -117,7 +160,7 @@ una bitácora. Para ver el número de contacto sin perder filas:
 1. Crear la hoja, privada, compartida solo con quien deba verla.
 2. Extensiones → Apps Script → pegar `apps-script.gs`.
 3. Poner el valor de `SECRET` en el script.
-4. Ejecutar `initSheet()` una vez (crea la pestaña `leads`, encabezados,
+4. Ejecutar `initSheet()` una vez (crea la pestaña `Leads`, encabezados,
    formato de fecha y zona horaria).
 5. Implementar → Nueva implementación → Aplicación web:
    *Ejecutar como:* **Yo** · *Quién tiene acceso:* **Cualquier persona**.

@@ -6,6 +6,7 @@
   "description": "PDPs por tienda/producto con captura de leads a Google Sheets",
   "scripts": {
     "dev": "node dev-server.js",
-    "dev:real": "node --env-file=.env.local dev-server.js"
+    "dev:real": "node --env-file=.env.local dev-server.js",
+    "build:pnn": "node tools/build-pnn.mjs"
   }
 }

@@ -4,3 +4,6 @@
 node_modules
 .env.local
 .env*.local
+
+# CSV crudo del IFT (15 MB). Solo se commitea el generado pnn-data.js.
+pnn_*.csv
