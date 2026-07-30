@@ -73,12 +73,14 @@ const FIELDS = [
   "utm_campaign",  // variante de landing; la fija el servidor
   "user_input_1",  // monto quincenal del botón elegido, en pesos (480)
   "user_input_2",  // quincenas de ese botón (4 / 8 / 12)
+  "session_id",    // lo genera el navegador; amarra el escaneo con el envío
 ];
 
 // Lo que se conoce al abrir la ficha. El resto todavía no existe: el cliente
 // no ha elegido plazo ni ha escrito su teléfono.
 const SCAN_FIELDS = [
   "id",
+  "session_id",
   "scanned_at",
   "store_id",
   "store_name",
@@ -143,19 +145,23 @@ function doPost(e) {
 
     const headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
 
-    // 1. Escaneo: abre la fila con el contexto y devuelve dónde quedó.
+    // La sesión es lo único que amarra las dos escrituras. Todo lo demás
+    // —incluida la idempotencia— cuelga de encontrar (o no) su fila.
+    const fila = findRowBySid(sh, headers, d.session_id);
+
+    // 1. Escaneo. Repetirlo NO duplica: el navegador reintenta al recargar y
+    //    api/lead.js puede reenviar un POST que en realidad sí se escribió,
+    //    solo que su respuesta llegó tarde.
     if (d.action === "scan") {
+      if (fila) {
+        Logger.log("Escaneo repetido de %s, ya está en la fila %s.", d.session_id, fila);
+        return json({ ok: true, id: sh.getRange(fila, columnFor(headers, "id")).getValue(), row: fila });
+      }
       return json(appendRow(sh, headers, d, SCAN_FIELDS, { scan: true }));
     }
 
-    // 2. Envío sobre una fila existente.
-    if (d.action === "submit" && d.id) {
-      const r = updateRow(sh, headers, d);
-      if (r) return json(r);
-      // No se encontró la fila (hoja limpiada, id de una implementación
-      // anterior). Cae al append de abajo: mejor una fila suelta que perder
-      // el lead.
-    }
+    // 2. Envío sobre la fila del escaneo.
+    if (fila) return json(updateRow(sh, headers, d, fila));
 
     // 3. Append completo. Es el camino cuando el escaneo no llegó a
     //    escribirse, y el que usaba la versión anterior del handler.
@@ -195,16 +201,19 @@ function buildValues(d, id, opts) {
     // promedian.
     user_input_1: numberOrBlank(d.user_input_1),
     user_input_2: numberOrBlank(d.user_input_2),
+    session_id: String(d.session_id || ""),
   };
 }
 
-/* Escribe celda por celda buscando cada field por NOMBRE de encabezado. Así
-   puedes reordenar o insertar columnas sin romper nada. */
+/* Busca cada field por NOMBRE de encabezado, así puedes reordenar o insertar
+   columnas sin romper nada, pero escribe el tramo COMPLETO de una sola vez.
+   Cada getRange().setValue() es un viaje a Google; con 13 campos eran 13, y
+   ahí se iba la mayor parte de lo que tardaba el endpoint. */
 function writeFields(sh, headers, row, values, fields) {
-  const omitidos = [];
+  const cols = [], omitidos = [];
   fields.forEach(function (field) {
     const col = columnFor(headers, field);
-    if (col > 0) sh.getRange(row, col).setValue(values[field]);
+    if (col > 0) cols.push({ col: col, field: field });
     else omitidos.push(field);
   });
 
@@ -213,62 +222,101 @@ function writeFields(sh, headers, row, values, fields) {
   if (omitidos.length) {
     Logger.log("Sin columna en la hoja, no se escribieron: %s", omitidos.join(", "));
   }
+  if (!cols.length) return;
+
+  let min = cols[0].col, max = cols[0].col;
+  const propias = {};
+  cols.forEach(function (c) {
+    if (c.col < min) min = c.col;
+    if (c.col > max) max = c.col;
+    propias[c.col] = c.field;
+  });
+
+  // El tramo puede abarcar columnas que este write no toca. Reescribirlas con
+  // su propio valor es inofensivo mientras sean del script; si alguien metió
+  // una columna de seguimiento EN MEDIO, una fórmula suya se congelaría en su
+  // resultado. En ese caso se vuelve a escribir celda por celda.
+  for (let c = min; c <= max; c++) {
+    if (!propias[c] && FIELDS.indexOf(headers[c - 1]) === -1) {
+      cols.forEach(function (x) { sh.getRange(row, x.col).setValue(values[x.field]); });
+      return;
+    }
+  }
+
+  const range = sh.getRange(row, min, 1, max - min + 1);
+  const linea = range.getValues()[0];
+  cols.forEach(function (c) { linea[c.col - min] = values[c.field]; });
+  range.setValues([linea]);
 }
 
 function appendRow(sh, headers, d, fields, opts) {
   const res = reserveRow(sh, headers);
   writeFields(sh, headers, res.row, buildValues(d, res.id, opts), fields);
   commitReservation(res);
+  rememberRow(d.session_id, res.row);
   SpreadsheetApp.flush();
-  // `row` viaja de regreso para que el envío no tenga que buscar la fila:
-  // api/lead.js lo firma junto con el id y lo devuelve tal cual.
   return { ok: true, id: res.id, row: res.row };
 }
 
-/* Completa el escaneo que ya está en la hoja. Devuelve null si esa fila no
-   existe, para que el llamador caiga al append. */
-function updateRow(sh, headers, d) {
-  const idCol = columnFor(headers, "id");
-  if (idCol === 0) throw new Error("la row 1 no tiene la columna 'id'");
-
-  const row = locateRow(sh, idCol, d.id, d.row);
-  if (!row) return null;
+/* Completa el escaneo que ya está en la hoja. */
+function updateRow(sh, headers, d, row) {
+  const id = sh.getRange(row, columnFor(headers, "id")).getValue();
 
   // Un envío solo puede completar un escaneo PENDIENTE. Si la fila ya tiene
-  // submitted_at es un reenvío (o alguien probando ids): se ignora en vez de
-  // pisar un lead que ya está capturado. Responde ok para no disparar los
-  // reintentos de api/lead.js, que aquí no arreglarían nada.
+  // submitted_at es un reenvío: se ignora en vez de pisar el lead. Pasa de
+  // verdad, no es una defensa teórica — api/lead.js reintenta cuando la
+  // respuesta tarda, y esa respuesta lenta puede venir de una escritura que
+  // SÍ ocurrió. Responde ok para que el reintento se dé por satisfecho.
   const subCol = columnFor(headers, "submitted_at");
   if (subCol > 0) {
     const ya = sh.getRange(row, subCol).getValue();
     if (ya !== "" && ya !== null) {
-      Logger.log("Envío duplicado sobre %s (fila %s), ignorado.", d.id, row);
-      return { ok: true, id: d.id, row: row, status: "already_submitted" };
+      Logger.log("Envío repetido de %s (fila %s), ignorado.", d.session_id, row);
+      return { ok: true, id: id, row: row, status: "already_submitted" };
     }
   }
 
-  writeFields(sh, headers, row, buildValues(d, d.id, { submit: true }), SUBMIT_FIELDS);
+  writeFields(sh, headers, row, buildValues(d, id, { submit: true }), SUBMIT_FIELDS);
   SpreadsheetApp.flush();
-  return { ok: true, id: d.id, row: row };
+  return { ok: true, id: id, row: row };
 }
 
-/* La fila que dice el cliente, confirmada contra la columna 'id'. Si no
-   coincide —insertaron o borraron filas a mano— se busca de verdad. */
-function locateRow(sh, idCol, id, hint) {
-  const n = Number(hint);
-  if (n > 1 && n <= sh.getMaxRows() && String(sh.getRange(n, idCol).getValue()) === String(id)) {
-    return n;
+/* La fila de una sesión, o 0 si todavía no existe.
+
+   La sesión la genera el navegador (crypto.randomUUID) y viaja en las dos
+   escrituras. Sustituyó al id secuencial firmado: como es impredecible ya
+   hace de contraseña de su propia fila, y como el cliente no tiene que
+   pedírsela a nadie, el envío ya no espera a que responda el escaneo.
+
+   CacheService guarda sesión → fila para no releer la columna en cada envío.
+   Se confirma siempre contra la celda: si insertaron o borraron filas a mano,
+   el número guardado ya no apunta a donde apuntaba. */
+function findRowBySid(sh, headers, sid) {
+  if (!sid) return 0;
+  const col = columnFor(headers, "session_id");
+  if (col === 0) return 0;
+
+  const hit = Number(CacheService.getScriptCache().get("row:" + sid));
+  if (hit > 1 && hit <= sh.getMaxRows() &&
+      String(sh.getRange(hit, col).getValue()) === String(sid)) {
+    return hit;
   }
-  return findRowById(sh, idCol, id);
-}
 
-function findRowById(sh, idCol, id) {
-  const vals = sh.getRange(1, idCol, sh.getMaxRows(), 1).getValues();
-  // De abajo hacia arriba: el id que se busca casi siempre es de los últimos.
+  const vals = sh.getRange(1, col, sh.getMaxRows(), 1).getValues();
+  // De abajo hacia arriba: la sesión que se busca casi siempre es reciente.
   for (let i = vals.length - 1; i >= 1; i--) {
-    if (String(vals[i][0]) === String(id)) return i + 1;
+    if (String(vals[i][0]) === String(sid)) {
+      rememberRow(sid, i + 1);
+      return i + 1;
+    }
   }
   return 0;
+}
+
+/* 6 h es el máximo de CacheService, y sobra: entre abrir la ficha y mandar
+   el teléfono pasan minutos. Si expira, se relee la columna y ya. */
+function rememberRow(sid, row) {
+  if (sid) CacheService.getScriptCache().put("row:" + String(sid), String(row), 21600);
 }
 
 /* -------------------------------------------------------------------------
@@ -393,9 +441,12 @@ function initSheet() {
                                  VACÍA en las filas anteriores: de esos leads
                                  nunca se midió el escaneo, y rellenarla con
                                  el envío falsearía el tiempo entre uno y otro.
+     session_id                  columna nueva, después de user_input_2. Es lo
+                                 que amarra el escaneo con su envío. También
+                                 vacía en lo anterior.
 
-   Las columnas de seguimiento se recorren una posición a la derecha. Sus
-   fórmulas se ajustan solas y el script las sigue ignorando.
+   Las columnas de seguimiento se recorren a la derecha. Sus fórmulas se
+   ajustan solas y el script las sigue ignorando.
    ---------------------------------------------------------------------- */
 function migrateSheet() {
   const sh = getSS().getSheetByName(SHEET_NAME);
@@ -422,6 +473,20 @@ function migrateSheet() {
     Logger.log("Insertada 'scanned_at' en la columna %s.", destino);
   } else {
     Logger.log("'scanned_at' ya existía, no se insertó nada.");
+  }
+
+  headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+
+  if (headers.indexOf("session_id") === -1) {
+    // Justo después de user_input_2, para que las columnas del script queden
+    // juntas y las de seguimiento sigan siendo las de la derecha.
+    const ultima = headers.indexOf("user_input_2") + 1;
+    if (ultima === 0) throw new Error("No encuentro 'user_input_2' en la fila 1.");
+    sh.insertColumnAfter(ultima);
+    sh.getRange(1, ultima + 1).setValue("session_id").setFontWeight("bold");
+    Logger.log("Insertada 'session_id' en la columna %s.", ultima + 1);
+  } else {
+    Logger.log("'session_id' ya existía, no se insertó nada.");
   }
 
   formatDateColumns(sh);

@@ -427,86 +427,92 @@ if (!store || !product) {
   render();
 }
 
-/* ---- Registro del escaneo ----
+/* ---- Registro ----
    La fila de la hoja se abre AL CARGAR la página, no al enviar: así queda
    medido el escaneo del QR aunque el cliente nunca deje su teléfono, que es
-   la mayoría de las veces. El envío completa esa misma fila con el ticket
-   firmado que devuelve el servidor. Ver api/lead.js.
+   la mayoría de las veces. El envío completa esa misma fila.
 
-   Recargar, o volver con el botón "atrás" desde avafin, dispararía un
-   escaneo nuevo y duplicaría la fila. sessionStorage guarda el ticket
-   mientras viva la pestaña, así que se reusa. */
-const SCAN_KEY = `t3b_scan:${rawStore}:${rawProduct}:${utmSource}`;
-let scanPromise = null;
+   Lo que las amarra es `sid`, un identificador de sesión que se genera AQUÍ.
+   Antes el servidor asignaba un id secuencial y lo devolvía firmado, lo que
+   obligaba al envío a esperar la respuesta del escaneo — y Apps Script tarda
+   segundos. Generarlo en el navegador quita esa espera por completo: el
+   envío ya sabe a qué fila pertenece sin preguntarle a nadie. Y como un UUID
+   no se adivina, hace de contraseña de esa fila igual que hacía la firma.
 
-function startScan() {
-  const previo = readTicket();
-  if (previo) {
-    scanPromise = Promise.resolve(previo);
-    return;
-  }
-  scanPromise = fetch("/api/lead", {
+   Recargar, o volver con "atrás" desde avafin, reusa el sid guardado en
+   sessionStorage, así que no se duplica la fila. */
+const SID_KEY = `t3b_sid:${rawStore}:${rawProduct}:${utmSource}`;
+
+/* Safari en navegación privada tira excepción al tocar sessionStorage. Sin
+   los try, la página entera se cae por una medición. */
+function sessionId() {
+  try {
+    const previo = sessionStorage.getItem(SID_KEY);
+    if (previo) return previo;
+  } catch { /* sigue y genera uno nuevo */ }
+
+  // randomUUID pide contexto seguro; producción es https y localhost cuenta
+  // como seguro. El respaldo es para lo que quede fuera de eso.
+  const sid = self.crypto && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 14)}`;
+
+  try {
+    sessionStorage.setItem(SID_KEY, sid);
+  } catch { /* solo se pierde la protección contra filas duplicadas */ }
+  return sid;
+}
+
+let sid = sessionId();
+
+/* La sesión se gasta al enviar. Sin rotarla, volver con "atrás" desde avafin
+   y enviar otra vez caería en la misma fila, que Apps Script ignora por tener
+   submitted_at: ese segundo lead se perdería en silencio. Rotar cuesta una
+   fila de escaneo de más y a cambio ningún envío se cae — la hoja es una
+   bitácora, un teléfono repetido siempre ha generado un lead nuevo.
+
+   Se rota también en memoria porque al volver desde avafin el navegador puede
+   restaurar la página del bfcache sin reejecutar este módulo. */
+function rotateSession() {
+  try {
+    sessionStorage.removeItem(SID_KEY);
+  } catch { /* ignorado */ }
+  sid = sessionId();
+}
+
+/* Manda el registro y devuelve el control DE INMEDIATO. Nunca se espera la
+   respuesta: el escaneo no la necesita y el envío no puede pagarla —Apps
+   Script serializa las escrituras y tarda segundos, que era justo el hueco
+   entre "Un momento…" y "Redirigiendo…".
+
+   sendBeacon está hecho para esto: el navegador se hace cargo de entregar el
+   POST aunque la página ya se haya ido a avafin. Si no está disponible o la
+   cola está llena, fetch con keepalive hace lo mismo. */
+function report(datos) {
+  const cuerpo = JSON.stringify({
+    sid,
+    store_id: store.code,
+    product_id: rawProduct,
+    utm_source: utmSource,
+    ...datos,
+  });
+
+  try {
+    const blob = new Blob([cuerpo], { type: "application/json" });
+    if (navigator.sendBeacon && navigator.sendBeacon("/api/lead", blob)) return;
+  } catch { /* cae al fetch */ }
+
+  fetch("/api/lead", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      action: "scan",
-      store_id: store.code,
-      product_id: rawProduct,
-      utm_source: utmSource,
-    }),
-  })
-    .then((r) => r.json())
-    .then((d) => {
-      if (!d || !d.ok) return null;
-      const ticket = { lead_id: d.id, lead_row: d.row, lead_sig: d.sig };
-      saveTicket(ticket);
-      return ticket;
-    })
-    // Un escaneo que no se registra no rompe nada: el envío abre la fila.
-    .catch(() => null);
+    body: cuerpo,
+    keepalive: true,
+  }).catch(() => { /* ver comentario de arriba: no bloquea nada */ });
 }
 
-/* Safari en navegación privada tira excepción al escribir sessionStorage.
-   Sin esto, la página entera se cae por una medición. */
-function readTicket() {
-  try {
-    return JSON.parse(sessionStorage.getItem(SCAN_KEY) || "null");
-  } catch {
-    return null;
-  }
-}
-
-function saveTicket(ticket) {
-  try {
-    sessionStorage.setItem(SCAN_KEY, JSON.stringify(ticket));
-  } catch {
-    /* ignorado: solo se pierde la protección contra filas duplicadas */
-  }
-}
-
-/* Se borra de los dos lados: al volver desde avafin el navegador puede
-   restaurar la página del bfcache sin reejecutar este módulo, y entonces
-   `scanPromise` seguiría en memoria con el ticket viejo. */
-function forgetTicket() {
-  scanPromise = null;
-  try {
-    sessionStorage.removeItem(SCAN_KEY);
-  } catch {
-    /* ignorado */
-  }
-}
-
-/* Espera a `p`, pero nunca más de `ms`. El registro del lead no puede
-   retrasar el redirect a avafin más que un instante. */
-function conLimite(p, ms) {
-  return Promise.race([
-    Promise.resolve(p),
-    new Promise((r) => setTimeout(() => r(null), ms)),
-  ]);
-}
-
-// Después de declarar SCAN_KEY: es const y llamarla antes truena por TDZ.
-if (store && product) startScan();
+// Va aquí abajo y no junto a render(): `sid` es const y usarla antes
+// truena por TDZ.
+if (store && product) report({ action: "scan" });
 
 function render() {
   document.title = `${product.name} — Tiendas 3B ${store.name}`;
@@ -585,7 +591,7 @@ phoneInput.addEventListener("input", () => {
   phoneBox.classList.remove("err");
 });
 
-form.addEventListener("submit", async (e) => {
+form.addEventListener("submit", (e) => {
   e.preventDefault();
   const phone = phoneInput.value.replace(/\D/g, "");
 
@@ -595,49 +601,19 @@ form.addEventListener("submit", async (e) => {
   }
 
   cta.disabled = true;
-  ctaTxt.textContent = "Un momento…";
-
-  // Se registra el lead y después se manda al cliente a avafin, que es donde
-  // realmente se solicita el préstamo.
-  //
-  // El registro NO bloquea el redirect: api/lead.js ya reintenta 3 veces y,
-  // si aun así falla, deja el lead completo en los logs de Vercel. Dejar a un
-  // cliente sin poder solicitar su crédito porque nuestra hoja de cálculo se
-  // cayó sería mucho peor que perder una fila de seguimiento.
-  //
-  // El ticket del escaneo ya suele estar listo desde que cargó la página. Si
-  // el cliente fue más rápido que la red se espera un poco y, si aun así no
-  // llega, el lead se manda sin él: api/lead.js abre la fila completa.
-  const ticket = await conLimite(scanPromise, 1500);
-
-  try {
-    await fetch("/api/lead", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        action: "submit",
-        phone,
-        store_id: store.code,
-        product_id: rawProduct,
-        utm_source: utmSource,
-        user_input_2: userInput,
-        ...(ticket || {}),
-      }),
-      keepalive: true, // sobrevive a la navegación que viene enseguida
-    });
-  } catch (err) {
-    /* ignorado a propósito: ver comentario de arriba */
-  }
-
-  // El ticket ya se gastó. Sin esto, volver con "atrás" desde avafin y
-  // enviar otra vez reusaría la fila, y Apps Script ignora un envío sobre
-  // una fila que ya tiene submitted_at: ese segundo lead se perdería en
-  // silencio. Soltarlo cuesta una fila de escaneo repetida y a cambio
-  // ningún envío se cae — la hoja es una bitácora, un teléfono repetido
-  // siempre ha generado un lead nuevo.
-  forgetTicket();
-
   ctaTxt.textContent = "Redirigiendo…";
+
+  // Se registra el lead y enseguida se manda al cliente a avafin, que es
+  // donde realmente se solicita el préstamo. El registro NO se espera: se
+  // entrega y el redirect ocurre en el mismo instante.
+  //
+  // Dejar a un cliente mirando "Un momento…" mientras Apps Script se toma
+  // sus segundos —o peor, mientras api/lead.js agota tres reintentos— para
+  // apuntar una fila de seguimiento es exactamente al revés de lo que
+  // importa. Si la escritura falla, el lead queda en los logs de Vercel.
+  report({ action: "submit", phone, user_input_2: userInput });
+  rotateSession();
+
   window.location.href = avafinUrl(rawProduct, product, store);
 });
 </script>

@@ -59,22 +59,33 @@ const server = createServer(async (req, res) => {
   // --- Receptor falso que sustituye a Apps Script ------------------------
   if (url.pathname === "/__stub" && req.method === "POST") {
     const body = JSON.parse(await readBody(req));
-    const { token, action, id: rowId, row: rowN, ...lead } = body;
+    const { token, action, ...lead } = body;
+    const sid = lead.session_id;
 
-    if (action === "submit" && stubRows.has(rowId)) {
-      const fila = { ...stubRows.get(rowId), ...lead, submitted_at: new Date() };
-      stubRows.set(rowId, fila);
-      console.log(`  ↳ [stub] fila ${rowId} completada (fila ${rowN})`, fila);
-      return respond(res, 200, { ok: true, id: rowId, row: rowN });
+    // Misma regla que Apps Script: la sesión decide, y repetir no duplica.
+    const previa = sid && [...stubRows].find(([, f]) => f.session_id === sid);
+    if (previa) {
+      const [id, fila] = previa;
+      if (action === "scan") {
+        console.log(`  ↳ [stub] escaneo repetido de ${sid}, ya es ${id}`);
+        return respond(res, 200, { ok: true, id, row: fila.__row });
+      }
+      if (fila.submitted_at) {
+        console.log(`  ↳ [stub] envío repetido sobre ${id}, ignorado`);
+        return respond(res, 200, { ok: true, id, row: fila.__row, status: "already_submitted" });
+      }
+      Object.assign(fila, lead, { submitted_at: new Date() });
+      console.log(`  ↳ [stub] ${id} completada (fila ${fila.__row})`, sinInternos(fila));
+      return respond(res, 200, { ok: true, id, row: fila.__row });
     }
 
     const id = "L-DEV-" + String(++stubN).padStart(3, "0");
     const row = stubN + 1;
     const fila = action === "scan"
-      ? { ...lead, scanned_at: new Date() }
-      : { ...lead, submitted_at: new Date() };
+      ? { ...lead, scanned_at: new Date(), __row: row }
+      : { ...lead, submitted_at: new Date(), __row: row };
     stubRows.set(id, fila);
-    console.log(`  ↳ [stub] ${action === "scan" ? "escaneo" : "fila completa"} → ${id} (fila ${row})`, fila);
+    console.log(`  ↳ [stub] ${action === "scan" ? "escaneo" : "fila completa"} → ${id} (fila ${row})`, sinInternos(fila));
     return respond(res, 200, { ok: true, id, row });
   }
 
@@ -135,4 +146,10 @@ function safeParse(s) {
   } catch {
     return null;
   }
+}
+
+/* La fila que se imprime, sin la contabilidad interna del stub. */
+function sinInternos(fila) {
+  const { __row, ...resto } = fila;
+  return resto;
 }

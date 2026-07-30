@@ -5,18 +5,18 @@
    con Apps Script directamente: si lo hiciera, el secreto viviría en el JS
    del navegador y cualquiera podría inyectar filas.
 
-   Dos acciones sobre la MISMA fila:
+   Dos acciones sobre la MISMA fila, amarradas por `sid`:
 
      action: "scan"    al abrir la ficha. Abre la fila con el contexto
-                       (tienda, producto, utm) y devuelve un ticket firmado.
-     action: "submit"  al enviar el teléfono. Devuelve ese ticket y completa
-                       la fila que ya existe.
+                       (tienda, producto, utm) y la hora del escaneo.
+     action: "submit"  al enviar el teléfono. Completa esa misma fila.
 
-   El ticket es {id, row, sig}, con sig = HMAC-SHA256 de "id:row" bajo
-   SHEET_SECRET. Sin firma bastaría con adivinar un id —son secuenciales,
-   L-000123— para escribirle encima a la fila de otro. Un ticket inválido no
-   se rechaza: cae al append completo, porque perder un lead es peor que
-   tener una fila suelta.
+   `sid` lo genera el navegador con crypto.randomUUID(). Es impredecible, así
+   que hace de contraseña de su propia fila: nadie puede completar la de otro.
+   Antes esto era un id secuencial firmado con HMAC, lo que obligaba al
+   cliente a ESPERAR la respuesta del escaneo antes de poder enviar — y esa
+   respuesta puede tardar segundos. Generarlo en el navegador quita la espera
+   y quita la firma.
 
    El navegador manda solo store_id / product_id / phone / utm. Los NOMBRES
    (store_name, product_name) se resuelven aquí contra catalog.js, no se
@@ -27,11 +27,15 @@
      SHEET_SECRET      — mismo valor que la constante SECRET del script
    ======================================================================== */
 
-import { createHmac, timingSafeEqual } from "node:crypto";
 import { PRODUCTS, findStore, displayedPayment, UTM_CAMPAIGN } from "../catalog.js";
 import { clasificar } from "../pnn.js";
 
-const TIMEOUT_MS = 8000;
+// Apps Script serializa las escrituras con LockService y bajo carga tarda
+// segundos. El timeout corta la ESPERA, no la escritura: al otro lado la fila
+// puede haberse escrito igual. Por eso los reintentos solo son seguros ahora
+// que Apps Script deduplica por sesión — antes, cada timeout dejaba una fila
+// de más.
+const TIMEOUT_MS = 15000;
 const ATTEMPTS = 3;
 const TERMS = [4, 8, 12];
 const TERM_DEFAULT = 8;
@@ -59,6 +63,10 @@ export default async function handler(req, res) {
   const product = PRODUCTS[productId];
   if (!product) return res.status(400).json({ ok: false, error: "invalid_product" });
 
+  // Un UUID trae solo hex y guiones. Se recorta en vez de rechazarse: sin
+  // sesión el lead entra igual, solo que como fila suelta.
+  const session_id = String(body.sid || "").replace(/[^0-9a-zA-Z-]/g, "").slice(0, 64);
+
   // utm_source es texto libre que viene de la URL: se limpia antes de escribirlo.
   const utm_source = String(body.utm_source || "")
     .replace(/[\x00-\x1f\x7f]/g, "")
@@ -66,6 +74,7 @@ export default async function handler(req, res) {
     .slice(0, 120);
 
   const contexto = {
+    session_id,
     store_id: store.code,
     store_name: store.name,
     product_id: productId,
@@ -76,20 +85,16 @@ export default async function handler(req, res) {
   };
 
   // --- Escaneo ----------------------------------------------------------
-  // Abre la fila y devuelve el ticket. Si falla no se reintenta hasta el
-  // cansancio: el envío puede abrir la fila él solo.
+  // Un intento y ya. El cliente no espera esta respuesta ni la lee: si no se
+  // escribe, el envío abre la fila él solo. Reintentar solo alargaría una
+  // función que a nadie le urge.
   if (body.action === "scan") {
     try {
       const r = await writeToSheet(SHEET_WEBHOOK_URL, SHEET_SECRET, {
         action: "scan",
         ...contexto,
       });
-      return res.status(200).json({
-        ok: true,
-        id: r.id,
-        row: r.row,
-        sig: sign(SHEET_SECRET, r.id, r.row),
-      });
+      return res.status(200).json({ ok: true, id: r.id });
     } catch (err) {
       console.warn("[lead] escaneo no registrado:", err && err.message);
       return res.status(200).json({ ok: false, error: "scan_unavailable" });
@@ -119,23 +124,13 @@ export default async function handler(req, res) {
   const user_input_1 = displayedPayment(product, store, user_input_2);
 
   const lead = {
+    action: "submit",
     ...contexto,
     phone,
     phone_valid,
     user_input_1, // monto quincenal del botón elegido, en pesos
     user_input_2, // quincenas de ese botón
   };
-
-  // Con ticket válido se completa la fila del escaneo; sin él se abre una
-  // nueva, que es lo que hacía la versión anterior de este handler.
-  const ticket = validTicket(SHEET_SECRET, body);
-  if (ticket) {
-    lead.action = "submit";
-    lead.id = ticket.id;
-    lead.row = ticket.row;
-  } else if (body.lead_id) {
-    console.warn("[lead] ticket inválido para", body.lead_id, "— se abre fila nueva");
-  }
 
   // --- Escritura en la hoja --------------------------------------------
   let lastError = null;
@@ -159,25 +154,6 @@ export default async function handler(req, res) {
     lastError && lastError.message
   );
   return res.status(502).json({ ok: false, error: "sheet_unavailable" });
-}
-
-/* ---- Ticket ------------------------------------------------------------ */
-
-function sign(secret, id, row) {
-  return createHmac("sha256", secret).update(`${id}:${row}`).digest("hex").slice(0, 32);
-}
-
-/* {id, row} si la firma cuadra; null si falta, no cuadra o viene deforme. */
-function validTicket(secret, body) {
-  const id = String(body.lead_id || "");
-  const row = Number(body.lead_row);
-  const sig = String(body.lead_sig || "");
-  if (!id || !Number.isInteger(row) || row < 2 || sig.length !== 32) return null;
-
-  const esperada = Buffer.from(sign(secret, id, row));
-  const recibida = Buffer.from(sig);
-  if (esperada.length !== recibida.length) return null;
-  return timingSafeEqual(esperada, recibida) ? { id, row } : null;
 }
 
 /* ---- Apps Script ------------------------------------------------------- */

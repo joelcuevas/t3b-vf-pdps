@@ -7,11 +7,11 @@ una hoja privada de Google Sheets. **No hay base de datos.**
 QR / campaña
    └─ /?store_id=3670&product_id=30742&utm_source=whatsapp
         └─ index.html   render del producto + precios de esa tienda
-             ├─ al cargar:  POST /api/lead {action:"scan"}
+             │           sid = crypto.randomUUID()   ← amarra las dos escrituras
+             ├─ al cargar:  POST /api/lead {action:"scan", sid}
              │                └─ Apps Script   abre la fila: id + scanned_at + contexto
-             │                     └─ devuelve un ticket firmado {id, row, sig}
-             ├─ al enviar:  POST /api/lead {action:"submit", …ticket}
-             │                └─ Apps Script   completa ESA fila: submitted_at + teléfono
+             ├─ al enviar:  POST /api/lead {action:"submit", sid}
+             │                └─ Apps Script   busca esa sesión y completa SU fila
              │                     └─ Hoja privada de Google
              └─ redirect → avafin.com.mx/tiendas?…   (solicitud del préstamo)
 ```
@@ -28,22 +28,55 @@ pasa la mayoría de las veces. Dos consecuencias al leer la hoja:
 - El orden de las filas es el de los **escaneos**. El último lead capturado
   no es la última fila; ordena por `submitted_at`.
 
-El envío tiene que decirle a Apps Script cuál fila completar, y los ids son
-secuenciales (`L-000123`): adivinarlos es trivial. Por eso el escaneo devuelve
-un **ticket firmado** —`sig` es un HMAC-SHA256 de `"id:row"` bajo
-`SHEET_SECRET`— que el envío regresa tal cual. Dos candados:
+### La sesión
 
-1. `api/lead.js` verifica la firma. Sin ella no se toca ninguna fila.
-2. Apps Script solo escribe si `submitted_at` está vacío. Un lead ya
-   capturado no se puede pisar ni con ticket válido.
+Lo que amarra las dos escrituras es `session_id`: un `crypto.randomUUID()` que
+genera **el navegador** al cargar la ficha y guarda en `sessionStorage`. Apps
+Script busca la fila por ese valor.
 
-Un ticket inválido o ausente **no rechaza el lead**: cae al append completo
-—una fila nueva, con `scanned_at` vacío— porque perder un lead es peor que
-tener una fila suelta. Ese es también el camino cuando el escaneo no llegó a
-escribirse, y el que usaba la versión anterior del handler.
+Que lo genere el cliente es la decisión importante, y se llegó a ella por las
+malas. La primera versión hacía que el servidor asignara el id secuencial y lo
+devolviera firmado con HMAC; el envío tenía que **esperar esa respuesta** antes
+de poder mandar nada. Apps Script serializa las escrituras y tarda segundos, así
+que ese "espere un momento" se sentía, y cuando la respuesta no llegaba a tiempo
+el envío se iba sin ticket y abría una fila suelta. Con el sid generado en el
+navegador no hay nada que esperar. Y como un UUID trae 122 bits de azar, es
+impredecible: hace de contraseña de su propia fila igual que hacía la firma, sin
+firma.
 
-El navegador guarda el ticket en `sessionStorage`, así que recargar o volver
-con el botón "atrás" desde avafin reusa la fila en vez de duplicarla.
+### Nada espera respuesta
+
+Ni el escaneo ni el envío leen lo que contesta el servidor. `report()` en
+`index.html` usa `navigator.sendBeacon`: el navegador se hace cargo de entregar
+el POST aunque la página ya se haya ido a avafin. El redirect ocurre en el mismo
+instante en que se aprieta el botón.
+
+Dejar a un cliente mirando una pantalla mientras se apunta una fila de
+seguimiento es al revés de lo que importa. Si la escritura falla, el lead queda
+en los logs de Vercel; ver "Riesgo asumido".
+
+### Repetir no duplica
+
+Apps Script resuelve todo por sesión, así que las dos escrituras son
+idempotentes:
+
+| Situación | Qué hace |
+|---|---|
+| Escaneo de una sesión que ya tiene fila | devuelve esa fila, no agrega |
+| Envío sobre una fila con `submitted_at` | lo ignora y responde `ok` |
+| Envío de una sesión sin fila | abre una completa, con `scanned_at` vacío |
+
+Esto no es defensa teórica. `api/lead.js` aborta a los 15 s y reintenta, pero el
+timeout corta **la espera, no la escritura**: al otro lado la fila puede haberse
+escrito igual. Sin deduplicar, cada timeout dejaba una fila de más — que es
+exactamente lo que se vio en producción, dos leads idénticos separados por
+justo el valor del timeout.
+
+Del lado del navegador, recargar o volver con "atrás" reusa el sid de
+`sessionStorage`. Al enviar, en cambio, el sid **se rota**: si no, un segundo
+envío desde la misma pestaña caería en la fila ya capturada y el candado de
+`submitted_at` lo tiraría en silencio. Cuesta una fila de escaneo de más y a
+cambio ningún envío se pierde.
 
 ## El redirect a avafin
 
@@ -93,7 +126,8 @@ y no ofrece el formulario.
 ## Columnas de la hoja
 
 `id · scanned_at · submitted_at · phone · phone_valid · store_id · store_name ·`
-`product_id · product_name · utm_source · utm_campaign · user_input_1 · user_input_2`
+`product_id · product_name · utm_source · utm_campaign · user_input_1 ·`
+`user_input_2 · session_id`
 
 | Columna | De dónde sale |
 |---|---|
@@ -108,6 +142,7 @@ y no ofrece el formulario.
 | `utm_campaign` | fijo, identifica la variante de landing. Hoy `dangler_select_payment` |
 | `user_input_1` | monto quincenal del botón elegido, en pesos (`810`), **recalculado en el servidor** |
 | `user_input_2` | quincenas de ese botón: 4, 8 o 12 (default 8) |
+| `session_id` | UUID que genera el navegador; es lo que amarra el escaneo con su envío |
 
 `utm_campaign` **no se toma del navegador**: lo pone `api/lead.js` desde la
 constante `UTM_CAMPAIGN` de `catalog.js`, para que no se pueda falsear desde
@@ -120,7 +155,7 @@ la misma función que pinta el botón: así la hoja no puede terminar con una
 cifra que la página nunca mostró. Los dos campos van como **número**, para
 poder sumarlos y promediarlos en la hoja.
 
-Las cinco primeras columnas se llenan en dos momentos: `id`, `scanned_at` y el
+La fila se llena en dos momentos: `id`, `session_id`, `scanned_at` y el
 contexto (`store_*`, `product_*`, `utm_*`) los escribe el escaneo;
 `submitted_at`, `phone`, `phone_valid` y los `user_input_*` los agrega el
 envío sobre esa misma fila. El envío **nunca** reescribe lo del escaneo.
@@ -132,15 +167,20 @@ envío sobre esa misma fila. El envío **nunca** reescribe lo del escaneo.
 > encabezado.
 
 Las columnas de seguimiento que agregues (estatus, notas, quién llamó) van
-**a la derecha de éstas**, o sea a partir de la `N`. El script escribe buscando
+**a la derecha de éstas**, o sea a partir de la `O`. El script escribe buscando
 cada campo por nombre de encabezado y omite los que no encuentra, así que
 puedes reordenar columnas, insertarlas o quitarlas sin romper la inserción —
-solo pierdes el dato de la que falte. Dos reglas para no romperla:
+solo pierdes el dato de la que falte. Tres reglas para no romperla:
 
 1. **No arrastres fórmulas hacia abajo** en columnas vacías. Usa
    `=ARRAYFORMULA(IF(A2:A="", "", …))` en la fila 1.
 2. Aplica validación de datos y formato condicional a la **columna completa**
-   (`N2:N`, no `N2:N500`) para que las filas nuevas los hereden.
+   (`O2:O`, no `O2:O500`) para que las filas nuevas los hereden.
+3. **A la derecha, no en medio.** El script escribe el tramo de sus columnas
+   de una sola vez —una llamada a Google en vez de trece, que es de donde
+   salía buena parte de la lentitud—. Si detecta una columna ajena metida
+   entre las suyas vuelve al modo celda por celda para no congelar tu
+   fórmula en su resultado: sigue siendo correcto, solo más lento.
 
 Un teléfono repetido genera un lead nuevo cada vez: es intencional, la hoja es
 una bitácora. Para ver el número de contacto sin perder filas (`D` = `phone`,
@@ -227,13 +267,16 @@ una vez, desde el editor. Es idempotente y hace tres cosas:
   anteriores: de esos leads nunca se midió el escaneo, y rellenarla con la
   hora del envío falsearía el tiempo entre uno y otro. Vacío = fila anterior
   al cambio.
-- Recorre las columnas de seguimiento una posición a la derecha. Sus fórmulas
-  se ajustan solas y el script las sigue ignorando.
+- Inserta `session_id` después de `user_input_2`, también vacía en lo
+  anterior. Sin esta columna el escaneo y el envío no se pueden amarrar y
+  cada uno abre su propia fila.
+- Recorre las columnas de seguimiento a la derecha. Sus fórmulas se ajustan
+  solas y el script las sigue ignorando.
 
 Aunque no lo corras, el script escribe igual: `submitted_at` acepta
-`created_at` como encabezado anterior (`LEGACY_HEADERS`). Lo único que se
-perdería es `scanned_at`, que quedaría registrado en el log de ejecuciones
-como columna faltante.
+`created_at` como encabezado anterior (`LEGACY_HEADERS`). Lo que se perdería
+es `scanned_at` y `session_id`, que quedan en el log de ejecuciones como
+columnas faltantes — y sin `session_id` vuelven los renglones dobles.
 
 > Al editar el script hay que crear una **nueva versión** de la implementación.
 > Guardar no basta: la URL `/exec` seguiría sirviendo el código anterior.
@@ -340,17 +383,27 @@ mano. Los logs de Vercel en plan Hobby se conservan poco tiempo: si esto llega
 a pasar seguido, es la señal para mover la escritura a Postgres y dejar la hoja
 como espejo.
 
-El escaneo **no** reintenta ni bloquea nada: falla en silencio (`[lead] escaneo
-no registrado` en el log) y el envío abre la fila él solo. Lo único que se
-pierde es la medición del escaneo, no el lead.
+El escaneo **no** reintenta: un intento y ya (`[lead] escaneo no registrado` en
+el log si falla). El cliente no lee esa respuesta, y si la fila no se abrió el
+envío la abre él solo. Lo único que se pierde es la medición del escaneo, no el
+lead.
 
 Ahora hay una escritura por escaneo, no por lead, y son bastantes más. Apps
-Script serializa todas con `LockService`, así que el cuello de botella se
-movió ahí. Dos cosas lo sostienen: `reserveRow()` cachea la siguiente fila y
-el siguiente id en `PropertiesService` —antes se leía la columna `id`
-completa en cada escritura— y el envío llega con el número de fila firmado,
-así que tampoco la busca. Si aun así aparecen respuestas `busy`, el efecto es
-solo perder escaneos: el envío sigue entrando por el camino de append.
+Script las serializa todas con `LockService`, así que el cuello de botella está
+ahí. Tres cosas lo sostienen, todas sobre el mismo principio de no volver a
+preguntar lo que ya se sabe:
+
+- `reserveRow()` cachea la siguiente fila y el siguiente id en
+  `PropertiesService`, y valida con dos celdas. Antes se leía la columna `id`
+  entera en cada escritura.
+- `findRowBySid()` cachea sesión → fila en `CacheService` (6 h), y la confirma
+  contra la celda antes de usarla.
+- `writeFields()` escribe el tramo completo con un `setValues`. Eran trece
+  llamadas a Google por fila.
+
+Y como nadie del lado del cliente espera respuesta, la lentitud que quede es
+invisible para quien escanea. Si aparecen respuestas `busy`, el efecto es
+perder mediciones de escaneo, no leads.
 
 ## Desarrollo local
 
@@ -386,15 +439,28 @@ URLs útiles para revisar los tres casos que se ven distinto:
 | Enlace roto | `/?store_id=9999&product_id=30742` |
 
 En modo stub el servidor imprime cada petición. El stub guarda las filas en
-memoria e imita a la hoja, así que verás las dos escrituras: al **abrir** la
-página, `escaneo → L-DEV-001 (fila 2)` con el contexto y `scanned_at`; al
-**enviar**, `fila L-DEV-001 completada` con el teléfono y `submitted_at`
-encima de la misma fila, y enseguida el redirect a avafin con todos sus
-parámetros.
+memoria y deduplica por sesión igual que Apps Script, así que verás las dos
+escrituras: al **abrir** la página, `escaneo → L-DEV-001 (fila 2)` con el
+contexto y `scanned_at`; al **enviar**, `L-DEV-001 completada` con el teléfono
+y `submitted_at` encima de la misma fila, y enseguida el redirect a avafin.
 
-Para comprobar el candado de la firma, manda un `submit` con un `lead_sig`
-inventado: debe abrir una fila nueva y dejar `ticket inválido` en el log, no
-tocar la del escaneo.
+Para comprobar que repetir no duplica, manda la misma sesión dos veces:
+
+```
+SID=11111111-2222-3333-4444-555555555555
+P='"store_id":"3670","product_id":"30742"'
+for i in 1 2; do
+  curl -s -X POST localhost:3000/api/lead -H 'content-type: application/json' \
+    -d "{\"action\":\"scan\",\"sid\":\"$SID\",$P}"; echo
+done
+for i in 1 2; do
+  curl -s -X POST localhost:3000/api/lead -H 'content-type: application/json' \
+    -d "{\"action\":\"submit\",\"sid\":\"$SID\",\"phone\":\"5579768806\",\"user_input_2\":12,$P}"; echo
+done
+```
+
+Las cuatro respuestas traen el **mismo** `id`, y en la terminal salen
+`escaneo repetido` y `envío repetido … ignorado`. Una sola fila.
 
 Para comprobar que las URLs de avafin siguen coincidiendo con las de los QR
 impresos, compara contra el script que los genera:
