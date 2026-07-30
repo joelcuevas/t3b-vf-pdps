@@ -44,7 +44,11 @@ if (STUB) {
 
 const { default: leadHandler } = await import("./api/lead.js");
 
+// El stub imita a la hoja: `scan` abre una fila, `submit` completa la que le
+// digan. Guarda las filas en memoria para que se vea el mismo efecto que en
+// Google — una fila por escaneo, no una por lead.
 let stubN = 0;
+const stubRows = new Map();
 
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
@@ -55,10 +59,23 @@ const server = createServer(async (req, res) => {
   // --- Receptor falso que sustituye a Apps Script ------------------------
   if (url.pathname === "/__stub" && req.method === "POST") {
     const body = JSON.parse(await readBody(req));
+    const { token, action, id: rowId, row: rowN, ...lead } = body;
+
+    if (action === "submit" && stubRows.has(rowId)) {
+      const fila = { ...stubRows.get(rowId), ...lead, submitted_at: new Date() };
+      stubRows.set(rowId, fila);
+      console.log(`  ↳ [stub] fila ${rowId} completada (fila ${rowN})`, fila);
+      return respond(res, 200, { ok: true, id: rowId, row: rowN });
+    }
+
     const id = "L-DEV-" + String(++stubN).padStart(3, "0");
-    const { token, ...lead } = body;
-    console.log(`  ↳ [stub] fila que se escribiría → ${id}`, lead);
-    return respond(res, 200, { ok: true, id });
+    const row = stubN + 1;
+    const fila = action === "scan"
+      ? { ...lead, scanned_at: new Date() }
+      : { ...lead, submitted_at: new Date() };
+    stubRows.set(id, fila);
+    console.log(`  ↳ [stub] ${action === "scan" ? "escaneo" : "fila completa"} → ${id} (fila ${row})`, fila);
+    return respond(res, 200, { ok: true, id, row });
   }
 
   // --- La función de Vercel ---------------------------------------------

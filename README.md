@@ -7,11 +7,43 @@ una hoja privada de Google Sheets. **No hay base de datos.**
 QR / campaña
    └─ /?store_id=3670&product_id=30742&utm_source=whatsapp
         └─ index.html   render del producto + precios de esa tienda
-             └─ POST /api/lead     valida y resuelve nombres
-             │    └─ Apps Script   asigna id y escribe la fila
-             │         └─ Hoja privada de Google
+             ├─ al cargar:  POST /api/lead {action:"scan"}
+             │                └─ Apps Script   abre la fila: id + scanned_at + contexto
+             │                     └─ devuelve un ticket firmado {id, row, sig}
+             ├─ al enviar:  POST /api/lead {action:"submit", …ticket}
+             │                └─ Apps Script   completa ESA fila: submitted_at + teléfono
+             │                     └─ Hoja privada de Google
              └─ redirect → avafin.com.mx/tiendas?…   (solicitud del préstamo)
 ```
+
+## Una fila por escaneo, no por lead
+
+La fila se abre **al cargar la ficha**, no al enviar el teléfono. Así queda
+medido el escaneo del QR aunque el cliente nunca deje sus datos, que es lo que
+pasa la mayoría de las veces. Dos consecuencias al leer la hoja:
+
+- Una fila con `scanned_at` y **sin** `submitted_at` es normal: alguien
+  escaneó y se fue. El número de filas ya **no** es el número de leads;
+  cuenta `submitted_at` no vacío.
+- El orden de las filas es el de los **escaneos**. El último lead capturado
+  no es la última fila; ordena por `submitted_at`.
+
+El envío tiene que decirle a Apps Script cuál fila completar, y los ids son
+secuenciales (`L-000123`): adivinarlos es trivial. Por eso el escaneo devuelve
+un **ticket firmado** —`sig` es un HMAC-SHA256 de `"id:row"` bajo
+`SHEET_SECRET`— que el envío regresa tal cual. Dos candados:
+
+1. `api/lead.js` verifica la firma. Sin ella no se toca ninguna fila.
+2. Apps Script solo escribe si `submitted_at` está vacío. Un lead ya
+   capturado no se puede pisar ni con ticket válido.
+
+Un ticket inválido o ausente **no rechaza el lead**: cae al append completo
+—una fila nueva, con `scanned_at` vacío— porque perder un lead es peor que
+tener una fila suelta. Ese es también el camino cuando el escaneo no llegó a
+escribirse, y el que usaba la versión anterior del handler.
+
+El navegador guarda el ticket en `sessionStorage`, así que recargar o volver
+con el botón "atrás" desde avafin reusa la fila en vez de duplicarla.
 
 ## El redirect a avafin
 
@@ -60,13 +92,14 @@ y no ofrece el formulario.
 
 ## Columnas de la hoja
 
-`id · created_at · phone · phone_valid · store_id · store_name · product_id ·`
-`product_name · utm_source · utm_campaign · user_input_1 · user_input_2`
+`id · scanned_at · submitted_at · phone · phone_valid · store_id · store_name ·`
+`product_id · product_name · utm_source · utm_campaign · user_input_1 · user_input_2`
 
 | Columna | De dónde sale |
 |---|---|
 | `id` | secuencial, lo asigna Apps Script (`L-000001`) |
-| `created_at` | lo estampa Apps Script, zona horaria de la hoja |
+| `scanned_at` | lo estampa Apps Script **al abrir la ficha**, zona horaria de la hoja |
+| `submitted_at` | lo estampa Apps Script **al enviar el teléfono**. Vacío = escaneó y no envió |
 | `phone` | del formulario, 10 dígitos |
 | `phone_valid` | `Móvil` / `Fijo` / `Inválido`, contra el PNN del IFT (ver abajo) |
 | `store_id` / `store_name` | de `store_id` en la URL, resuelto **en el servidor** |
@@ -87,6 +120,11 @@ la misma función que pinta el botón: así la hoja no puede terminar con una
 cifra que la página nunca mostró. Los dos campos van como **número**, para
 poder sumarlos y promediarlos en la hoja.
 
+Las cinco primeras columnas se llenan en dos momentos: `id`, `scanned_at` y el
+contexto (`store_*`, `product_*`, `utm_*`) los escribe el escaneo;
+`submitted_at`, `phone`, `phone_valid` y los `user_input_*` los agrega el
+envío sobre esa misma fila. El envío **nunca** reescribe lo del escaneo.
+
 > Las columnas las crea `initSheet()`. No lo corras sobre una hoja con
 > columnas propias de seguimiento: escribe los encabezados en las primeras
 > `FIELDS.length` columnas y pisaría la primera de las tuyas; en ese caso
@@ -94,7 +132,7 @@ poder sumarlos y promediarlos en la hoja.
 > encabezado.
 
 Las columnas de seguimiento que agregues (estatus, notas, quién llamó) van
-**a la derecha de éstas**, o sea a partir de la `M`. El script escribe buscando
+**a la derecha de éstas**, o sea a partir de la `N`. El script escribe buscando
 cada campo por nombre de encabezado y omite los que no encuentra, así que
 puedes reordenar columnas, insertarlas o quitarlas sin romper la inserción —
 solo pierdes el dato de la que falte. Dos reglas para no romperla:
@@ -102,13 +140,20 @@ solo pierdes el dato de la que falte. Dos reglas para no romperla:
 1. **No arrastres fórmulas hacia abajo** en columnas vacías. Usa
    `=ARRAYFORMULA(IF(A2:A="", "", …))` en la fila 1.
 2. Aplica validación de datos y formato condicional a la **columna completa**
-   (`M2:M`, no `M2:M500`) para que las filas nuevas los hereden.
+   (`N2:N`, no `N2:N500`) para que las filas nuevas los hereden.
 
 Un teléfono repetido genera un lead nuevo cada vez: es intencional, la hoja es
-una bitácora. Para ver el número de contacto sin perder filas:
+una bitácora. Para ver el número de contacto sin perder filas (`D` = `phone`,
+`C` = `submitted_at`):
 
 ```
-=ARRAYFORMULA(IF(C2:C="", "", COUNTIFS(C$2:C, C2:C, B$2:B, "<="&B2:B)))
+=ARRAYFORMULA(IF(D2:D="", "", COUNTIFS(D$2:D, D2:D, C$2:C, "<="&C2:C)))
+```
+
+Y la conversión escaneo → lead, que es lo que este cambio hace medible:
+
+```
+=COUNTA(C2:C) / COUNTA(B2:B)
 ```
 
 ## Validación del teléfono (`phone_valid`)
@@ -167,7 +212,28 @@ tarda del orden de un segundo, el costo por lead es irrelevante.
    Copiar la URL que termina en `/exec`.
 
 > "Cualquier persona" publica **la URL del script, no la hoja**. Ese endpoint
-> solo inserta filas y responde `{ok, id}`; no lee ni devuelve datos.
+> escribe filas y responde `{ok, id, row}`; no lee ni devuelve datos de la hoja.
+
+### Hoja que ya tiene datos
+
+`initSheet()` escribe encabezados **por posición** y te pisaría la primera
+columna de seguimiento. Para migrar una hoja con datos corre `migrateSheet()`
+una vez, desde el editor. Es idempotente y hace tres cosas:
+
+- Renombra `created_at` → `submitted_at`. Solo cambia el rótulo: lo que esa
+  columna guardaba era justo la hora del envío, así que los datos siguen
+  siendo exactos.
+- Inserta `scanned_at` antes de `submitted_at`. Queda **vacía** en las filas
+  anteriores: de esos leads nunca se midió el escaneo, y rellenarla con la
+  hora del envío falsearía el tiempo entre uno y otro. Vacío = fila anterior
+  al cambio.
+- Recorre las columnas de seguimiento una posición a la derecha. Sus fórmulas
+  se ajustan solas y el script las sigue ignorando.
+
+Aunque no lo corras, el script escribe igual: `submitted_at` acepta
+`created_at` como encabezado anterior (`LEGACY_HEADERS`). Lo único que se
+perdería es `scanned_at`, que quedaría registrado en el log de ejecuciones
+como columna faltante.
 
 > Al editar el script hay que crear una **nueva versión** de la implementación.
 > Guardar no basta: la URL `/exec` seguiría sirviendo el código anterior.
@@ -274,6 +340,18 @@ mano. Los logs de Vercel en plan Hobby se conservan poco tiempo: si esto llega
 a pasar seguido, es la señal para mover la escritura a Postgres y dejar la hoja
 como espejo.
 
+El escaneo **no** reintenta ni bloquea nada: falla en silencio (`[lead] escaneo
+no registrado` en el log) y el envío abre la fila él solo. Lo único que se
+pierde es la medición del escaneo, no el lead.
+
+Ahora hay una escritura por escaneo, no por lead, y son bastantes más. Apps
+Script serializa todas con `LockService`, así que el cuello de botella se
+movió ahí. Dos cosas lo sostienen: `reserveRow()` cachea la siguiente fila y
+el siguiente id en `PropertiesService` —antes se leía la columna `id`
+completa en cada escritura— y el envío llega con el número de fila firmado,
+así que tampoco la busca. Si aun así aparecen respuestas `busy`, el efecto es
+solo perder escaneos: el envío sigue entrando por el camino de append.
+
 ## Desarrollo local
 
 Sin dependencias y sin cuenta de Vercel. `dev-server.js` ejecuta el mismo
@@ -307,9 +385,16 @@ URLs útiles para revisar los tres casos que se ven distinto:
 | Tienda sin enganche | `/?store_id=Tetiz&product_id=30553` |
 | Enlace roto | `/?store_id=9999&product_id=30742` |
 
-En modo stub el servidor imprime cada petición, así que al enviar el formulario
-verás en la terminal la fila que se escribiría y enseguida el redirect a avafin
-con todos sus parámetros.
+En modo stub el servidor imprime cada petición. El stub guarda las filas en
+memoria e imita a la hoja, así que verás las dos escrituras: al **abrir** la
+página, `escaneo → L-DEV-001 (fila 2)` con el contexto y `scanned_at`; al
+**enviar**, `fila L-DEV-001 completada` con el teléfono y `submitted_at`
+encima de la misma fila, y enseguida el redirect a avafin con todos sus
+parámetros.
+
+Para comprobar el candado de la firma, manda un `submit` con un `lead_sig`
+inventado: debe abrir una fila nueva y dejar `ticket inválido` en el log, no
+tocar la del escaneo.
 
 Para comprobar que las URLs de avafin siguen coincidiendo con las de los QR
 impresos, compara contra el script que los genera:
