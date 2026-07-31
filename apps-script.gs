@@ -29,6 +29,11 @@
    ⚠️ Cada vez que edites este código hay que crear una NUEVA VERSIÓN de la
    implementación (Implementar → Gestionar implementaciones → editar → Versión:
    Nueva). Si solo guardas, la URL /exec sigue sirviendo el código viejo.
+
+   Teléfonos bloqueados: corre initBlockSheet() UNA VEZ. Crea la pestaña
+   "Bloqueados" y siembra los primeros números. De ahí en adelante agregas
+   números EN LA HOJA — no aquí — y aplican solos, sin implementación nueva.
+   purgeBlocked() borra los que ya estén escritos en "Leads".
    ======================================================================== */
 
 // Debe coincidir con la variable SHEET_SECRET en Vercel.
@@ -160,10 +165,21 @@ function doPost(e) {
       return json(appendRow(sh, headers, d, SCAN_FIELDS, { scan: true }));
     }
 
-    // 2. Envío sobre la fila del escaneo.
+    // 2. Teléfono bloqueado. No se escribe nada y se borra la fila que abrió
+    //    su escaneo: si el número es basura, su escaneo también lo es y solo
+    //    ensucia el conteo. Responde ok a propósito — api/lead.js reintenta
+    //    tres veces cuando la respuesta no es ok, y al cliente no se le avisa
+    //    que está bloqueado.
+    if (isBlocked(d.phone)) {
+      Logger.log("Teléfono bloqueado (%s), no se registró.", normalizePhone(d.phone));
+      if (fila) deleteIfSafe(sh, headers, fila, d.session_id);
+      return json({ ok: true, status: "blocked" });
+    }
+
+    // 3. Envío sobre la fila del escaneo.
     if (fila) return json(updateRow(sh, headers, d, fila));
 
-    // 3. Append completo. Es el camino cuando el escaneo no llegó a
+    // 4. Append completo. Es el camino cuando el escaneo no llegó a
     //    escribirse, y el que usaba la versión anterior del handler.
     return json(appendRow(sh, headers, d, FIELDS, { submit: true }));
   } catch (err) {
@@ -320,6 +336,103 @@ function rememberRow(sid, row) {
 }
 
 /* -------------------------------------------------------------------------
+   Teléfonos bloqueados
+
+   La lista vive en la pestaña "Bloqueados", no en el código: así se agrega un
+   número desde la hoja y aplica solo, sin editar el .gs ni crear una versión
+   nueva de la implementación — el paso que es fácil olvidar y que deja el
+   /exec bloqueando con la lista vieja.
+
+   Cuesta una lectura, pero solo en el ENVÍO: el escaneo, que es la mayoría de
+   las escrituras, ni la mira. Y va cacheada, así que es una lectura de una
+   columna chica cada 5 min, no una por lead.
+   ---------------------------------------------------------------------- */
+
+const BLOCK_SHEET_NAME = "Bloqueados";
+const BLOCK_CACHE_KEY = "blocked_phones";
+const BLOCK_CACHE_TTL = 300; // segundos
+
+// Solo la siembra inicial de initBlockSheet(). Después de correrlo, la lista
+// buena es la de la pestaña; agregar aquí no bloquea nada.
+const BLOCK_SEED = [
+  "9498898021",
+  "5666824567",
+  "5554091097",
+  "5579228297",
+  "5554559526",
+  "5536670516",
+  "5579768806",
+];
+
+/* A 10 dígitos, que es como los guarda la hoja. Se queda con los ÚLTIMOS diez
+   para que un número escrito con lada de país (+52…, 52…) case igual, y para
+   que en la pestaña se pueda capturar con espacios o guiones. */
+function normalizePhone(v) {
+  const d = String(v === null || v === undefined ? "" : v).replace(/\D/g, "");
+  return d.length > 10 ? d.slice(-10) : d;
+}
+
+function loadBlocked() {
+  const cache = CacheService.getScriptCache();
+  const hit = cache.get(BLOCK_CACHE_KEY);
+  if (hit !== null) return JSON.parse(hit);
+
+  const sh = getSS().getSheetByName(BLOCK_SHEET_NAME);
+  let lista = [];
+  if (!sh) {
+    // Sin pestaña no se bloquea nada. Es silencioso por diseño —el lead entra
+    // igual— así que queda dicho en el registro de ejecuciones.
+    Logger.log("No existe la pestaña '%s'; corre initBlockSheet() una vez.", BLOCK_SHEET_NAME);
+  } else if (sh.getLastRow() > 1) {
+    lista = sh.getRange(2, 1, sh.getLastRow() - 1, 1).getValues()
+      .map(function (r) { return normalizePhone(r[0]); })
+      .filter(function (p) { return p.length === 10; });
+  }
+
+  cache.put(BLOCK_CACHE_KEY, JSON.stringify(lista), BLOCK_CACHE_TTL);
+  return lista;
+}
+
+function isBlocked(phone) {
+  const p = normalizePhone(phone);
+  return p.length === 10 && loadBlocked().indexOf(p) !== -1;
+}
+
+/* Una fila que YA tiene envío con otro teléfono es un lead bueno. Dos envíos
+   con la misma sesión pasan de verdad (recarga, teléfono compartido en el
+   piso de venta), y un número bloqueado no puede llevarse por delante el lead
+   de alguien más. */
+function deleteIfSafe(sh, headers, row, sid) {
+  const subCol = columnFor(headers, "submitted_at");
+  const phCol = columnFor(headers, "phone");
+  if (subCol > 0 && phCol > 0) {
+    const ya = sh.getRange(row, subCol).getValue();
+    if (ya !== "" && ya !== null && !isBlocked(sh.getRange(row, phCol).getValue())) {
+      Logger.log("La fila %s ya tenía un envío con otro teléfono; no se borra.", row);
+      return false;
+    }
+  }
+  deleteLeadRow(sh, row, sid);
+  Logger.log("Fila %s borrada.", row);
+  return true;
+}
+
+/* Borrar corre hacia arriba todo lo que está debajo. Las dos cachés lo
+   aguantan: la de sesión → fila confirma contra la celda antes de creerse su
+   número, y la reserva se ajusta aquí para no perder el camino rápido —si no,
+   la siguiente escritura tendría que releer la columna 'id' completa. */
+function deleteLeadRow(sh, row, sid) {
+  sh.deleteRow(row);
+  if (sid) CacheService.getScriptCache().remove("row:" + String(sid));
+
+  const props = PropertiesService.getScriptProperties();
+  const next = Number(props.getProperty(PROP_ROW)) || 0;
+  if (next > row) props.setProperty(PROP_ROW, String(next - 1));
+
+  SpreadsheetApp.flush();
+}
+
+/* -------------------------------------------------------------------------
    Reserva de fila e id
    ---------------------------------------------------------------------- */
 
@@ -376,12 +489,20 @@ function lastRowWithId(sh, idCol) {
   return 1; // solo el encabezado
 }
 
-/* Ids secuenciales legibles: L-000001, L-000002… */
+/* Ids secuenciales legibles: L-000001, L-000002…
+
+   El MÁXIMO de la columna, no el id de la última fila. Ordenar la hoja por
+   cualquier otra columna —y una tabla de Sheets invita a hacerlo— deja abajo
+   una fila que no es la del id más alto; tomarlo de ahí repetiría ids ya
+   usados. Cuesta lo mismo: la columna ya se lee completa de todos modos. */
 function lastIdNum(sh, idCol) {
-  const row = lastRowWithId(sh, idCol);
-  if (row <= 1) return 0;
-  const ultimo = String(sh.getRange(row, idCol).getValue());
-  return parseInt(ultimo.replace(/\D/g, ""), 10) || 0;
+  const vals = sh.getRange(1, idCol, sh.getMaxRows(), 1).getValues();
+  let max = 0;
+  for (let i = 1; i < vals.length; i++) { // desde la 2: la 1 es el encabezado
+    const n = parseInt(String(vals[i][0]).replace(/\D/g, ""), 10);
+    if (n > max) max = n;
+  }
+  return max;
 }
 
 /* Celda numérica, o vacía si no llegó nada usable. Devolver "" en vez de 0
@@ -514,4 +635,99 @@ function resetCache() {
   const props = PropertiesService.getScriptProperties();
   props.deleteProperty(PROP_ROW);
   props.deleteProperty(PROP_ID);
+}
+
+/* -------------------------------------------------------------------------
+   Bloqueados: correr desde el editor
+   ---------------------------------------------------------------------- */
+
+/* UNA VEZ: crea la pestaña "Bloqueados" y siembra BLOCK_SEED. Es idempotente,
+   correrlo de más no duplica nada.
+
+   Para agregar números después NO hace falta tocar el código: se escriben en
+   la columna A de esa pestaña, uno por fila. La columna B es para tu nota
+   (quién es, por qué se bloqueó); el script no la lee. */
+function initBlockSheet() {
+  const ss = getSS();
+  let sh = ss.getSheetByName(BLOCK_SHEET_NAME);
+
+  if (sh) {
+    Logger.log("La pestaña '%s' ya existía.", BLOCK_SHEET_NAME);
+  } else {
+    sh = ss.insertSheet(BLOCK_SHEET_NAME);
+    sh.getRange(1, 1, 1, 2).setValues([["phone", "nota"]]).setFontWeight("bold");
+    sh.setFrozenRows(1);
+    // Texto, no número: si no, la hoja se come el 0 inicial y redondea.
+    sh.getRange(1, 1, sh.getMaxRows(), 1).setNumberFormat("@");
+    sh.setColumnWidth(1, 140);
+    sh.setColumnWidth(2, 360);
+    Logger.log("Pestaña '%s' creada.", BLOCK_SHEET_NAME);
+  }
+
+  const last = sh.getLastRow();
+  const ya = last > 1
+    ? sh.getRange(2, 1, last - 1, 1).getValues().map(function (r) { return normalizePhone(r[0]); })
+    : [];
+
+  const nuevos = BLOCK_SEED
+    .map(function (p) { return normalizePhone(p); })
+    .filter(function (p) { return p.length === 10 && ya.indexOf(p) === -1; });
+
+  if (nuevos.length) {
+    sh.getRange(last + 1, 1, nuevos.length, 1)
+      .setValues(nuevos.map(function (p) { return [p]; }));
+    Logger.log("Agregado(s) %s número(s): %s", nuevos.length, nuevos.join(", "));
+  } else {
+    Logger.log("Los números de la siembra ya estaban en la lista.");
+  }
+
+  resetBlockedCache();
+  SpreadsheetApp.flush();
+  Logger.log("Bloqueados ahora: %s", loadBlocked().join(", ") || "(ninguno)");
+}
+
+/* Borra de "Leads" todo lo que ya esté escrito con un teléfono bloqueado.
+   Córrelo después de agregar números a la pestaña. */
+function purgeBlocked() {
+  const sh = getSS().getSheetByName(SHEET_NAME);
+  if (!sh) throw new Error("No existe la pestaña '" + SHEET_NAME + "'.");
+
+  const headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+  const phCol = columnFor(headers, "phone");
+  if (phCol === 0) throw new Error("La fila 1 no tiene la columna 'phone'.");
+
+  CacheService.getScriptCache().remove(BLOCK_CACHE_KEY);
+  const bloqueados = loadBlocked();
+  if (!bloqueados.length) {
+    Logger.log("La lista de bloqueados está vacía; no hay nada que borrar.");
+    return;
+  }
+
+  const total = sh.getMaxRows();
+  const vals = sh.getRange(1, phCol, total, 1).getValues();
+
+  // De abajo hacia arriba: borrar de arriba corre las filas que faltan por
+  // revisar y se saltaría la de junto.
+  let borradas = 0;
+  for (let i = total - 1; i >= 1; i--) {
+    const p = normalizePhone(vals[i][0]);
+    if (p.length === 10 && bloqueados.indexOf(p) !== -1) {
+      sh.deleteRow(i + 1);
+      borradas++;
+      Logger.log("Borrada la fila %s (%s).", i + 1, p);
+    }
+  }
+
+  // Las filas se corrieron; que la reserva se recalcule de cero.
+  resetCache();
+  SpreadsheetApp.flush();
+  Logger.log("purgeBlocked: %s fila(s) borrada(s), contra %s número(s) bloqueado(s).",
+    borradas, bloqueados.length);
+}
+
+/* La lista se cachea 5 min. Un número recién agregado a la pestaña empieza a
+   bloquear cuando expira ese rato; corre esto si lo quieres de inmediato. */
+function resetBlockedCache() {
+  CacheService.getScriptCache().remove(BLOCK_CACHE_KEY);
+  Logger.log("Caché de bloqueados vaciada; la lista se relee en el siguiente envío.");
 }

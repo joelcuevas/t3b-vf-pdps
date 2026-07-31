@@ -182,6 +182,32 @@ solo pierdes el dato de la que falte. Tres reglas para no romperla:
    entre las suyas vuelve al modo celda por celda para no congelar tu
    fórmula en su resultado: sigue siendo correcto, solo más lento.
 
+### Tablas, filtros y ordenar
+
+Convertir `Leads` en una **tabla de Sheets** no le afecta al script, y filtrar
+u ocultar columnas tampoco: Apps Script lee y escribe el **modelo de datos**,
+no lo que se ve. `getValues()` devuelve las celdas de una columna oculta igual
+que las de una visible, y las filas escondidas por un filtro siguen contando
+para `getMaxRows()`. Filtra, oculta y agrupa lo que quieras.
+
+**Ordenar** sí mueve filas de verdad, y aun así aguanta: las cachés de sesión y
+de fila se confirman contra la celda antes de creerse su número, y el `id`
+nuevo sale del **máximo** de la columna, no del id de la última fila — si no,
+ordenar por `store_name` y luego correr `purgeBlocked()` (que limpia esas
+cachés) repetiría ids ya usados.
+
+Lo que sí la rompe:
+
+- **Mover el encabezado de la fila 1.** Insertar un título arriba deja los
+  nombres de columna en la fila 2 y el script deja de encontrarlos: revienta
+  con `la row 1 no tiene la columna 'id'`, o escribe filas vacías.
+- **La fila de totales de la tabla**, si cae en la columna `id`: el script
+  busca la primera fila con `id` vacío para escribir, y esa dejaría de estarlo.
+
+> Una tabla tiene un rango definido. Manda un lead de prueba y confirma que la
+> fila nueva entró **dentro** de la tabla y no debajo — si Sheets no expande el
+> rango solo, los filtros y el formato se quedarían sin las filas nuevas.
+
 Un teléfono repetido genera un lead nuevo cada vez: es intencional, la hoja es
 una bitácora. Para ver el número de contacto sin perder filas (`D` = `phone`,
 `C` = `submitted_at`):
@@ -246,7 +272,8 @@ tarda del orden de un segundo, el costo por lead es irrelevante.
 2. Extensiones → Apps Script → pegar `apps-script.gs`.
 3. Poner el valor de `SECRET` en el script.
 4. Ejecutar `initSheet()` una vez (crea la pestaña `Leads`, encabezados,
-   formato de fecha y zona horaria).
+   formato de fecha y zona horaria) y `initBlockSheet()` una vez (crea la
+   pestaña `Bloqueados`, ver más abajo).
 5. Implementar → Nueva implementación → Aplicación web:
    *Ejecutar como:* **Yo** · *Quién tiene acceso:* **Cualquier persona**.
    Copiar la URL que termina en `/exec`.
@@ -272,6 +299,53 @@ una vez, desde el editor. Es idempotente y hace tres cosas:
   cada uno abre su propia fila.
 - Recorre las columnas de seguimiento a la derecha. Sus fórmulas se ajustan
   solas y el script las sigue ignorando.
+
+### Teléfonos bloqueados
+
+Números que no deben entrar a la hoja: pruebas internas, bots, quien pidió que
+lo dejaran de contactar. Corre `initBlockSheet()` **una vez**: crea la pestaña
+`Bloqueados` y siembra la lista inicial.
+
+Para agregar más **no se toca el código**: se escriben en la columna `A` de esa
+pestaña, uno por fila. La `B` es para tu nota (quién es, por qué); el script no
+la lee. La lista vive en la hoja justamente para que agregar un número no
+dependa de acordarse de crear una versión nueva de la implementación — si se te
+olvida ese paso, el `/exec` seguiría bloqueando con la lista vieja.
+
+Se comparan los **últimos 10 dígitos**, así que da igual cómo los captures:
+`55 5409 1097`, `+52 55 5409 1097` y `5554091097` son el mismo número.
+
+Qué pasa cuando uno bloqueado envía:
+
+- No se escribe nada, y **la fila que abrió su escaneo se borra**. Si el número
+  es basura, su escaneo también lo es y solo infla el conteo de escaneos.
+- La página le responde normal, sin avisarle que está bloqueado. Apps Script
+  devuelve `{ok: true, status: "blocked"}` a propósito: con un `ok: false`,
+  `api/lead.js` reintentaría tres veces y acabaría en un error de cara al
+  cliente.
+- Si esa fila **ya tenía un envío con otro teléfono**, no se borra. Dos envíos
+  con la misma sesión pasan de verdad (una recarga, un teléfono que se pasa de
+  mano en el piso de venta) y un bloqueado no puede llevarse por delante el
+  lead de alguien más.
+- Queda anotado en el registro de ejecuciones del script.
+
+| Función | Cuándo |
+|---|---|
+| `initBlockSheet()` | una vez, al configurar. Idempotente |
+| `purgeBlocked()` | después de agregar números: borra de `Leads` lo que ya esté escrito con esos teléfonos |
+| `resetBlockedCache()` | solo si quieres que un número recién agregado aplique ya |
+
+La lista se cachea 5 minutos, así que un número nuevo empieza a bloquear a más
+tardar en ese rato — o de inmediato con `resetBlockedCache()`. Se lee **solo en
+el envío**; el escaneo, que es la gran mayoría de las escrituras, ni la mira.
+
+Borrar filas deja **huecos en los `id`** (`L-000004`, `L-000006`…). Es normal:
+el `id` es una etiqueta secuencial, no un contador de leads. Las cachés de fila
+y de sesión aguantan el corrimiento — se confirman contra la celda antes de
+creerse su número.
+
+> Si la pestaña `Bloqueados` no existe, **no se bloquea nada** y los leads
+> entran normal. Queda dicho en el registro de ejecuciones.
 
 Aunque no lo corras, el script escribe igual: `submitted_at` acepta
 `created_at` como encabezado anterior (`LEGACY_HEADERS`). Lo que se perdería
