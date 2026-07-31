@@ -204,9 +204,10 @@ Lo que sí la rompe:
 - **La fila de totales de la tabla**, si cae en la columna `id`: el script
   busca la primera fila con `id` vacío para escribir, y esa dejaría de estarlo.
 
-> Una tabla tiene un rango definido. Manda un lead de prueba y confirma que la
-> fila nueva entró **dentro** de la tabla y no debajo — si Sheets no expande el
-> rango solo, los filtros y el formato se quedarían sin las filas nuevas.
+Una tabla tiene un rango definido, y la duda era si Sheets lo expandiría con
+escrituras de Apps Script o si los leads nuevos caerían debajo, fuera de los
+filtros y del formato. **Probado en la hoja real: la fila nueva entra dentro de
+la tabla**, el rango se estira solo.
 
 Un teléfono repetido genera un lead nuevo cada vez: es intencional, la hoja es
 una bitácora. Para ver el número de contacto sin perder filas (`D` = `phone`,
