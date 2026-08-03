@@ -89,10 +89,29 @@ export default async function handler(req, res) {
   // escribe, el envío abre la fila él solo. Reintentar solo alargaría una
   // función que a nadie le urge.
   if (body.action === "scan") {
+    const bot = clasificarBot(req, body);
+
+    // La razón NO va a la hoja —no hay columna para ella— pero sí al log de
+    // Vercel, que es donde se revisa un veredicto que no cuadra y donde se
+    // reafinan los pesos. Sin esto, "Bot" en la hoja sería un dictamen sin
+    // manera de comprobarlo.
+    if (bot.marca) {
+      console.log(
+        "[lead] escaneo marcado:", bot.marca,
+        "| razones:", bot.razones.join(","),
+        "| tienda:", store.code, "| producto:", productId,
+        "| ua:", bot.ua || "(sin ua)"
+      );
+    }
+
     try {
       const r = await writeToSheet(SHEET_WEBHOOK_URL, SHEET_SECRET, {
         action: "scan",
         ...contexto,
+        // Único campo del escaneo que no es contexto del enlace. En la fila de
+        // un escaneo esta columna todavía no puede significar "teléfono
+        // válido": no hay teléfono. Ver el bloque "¿Bot?" más abajo.
+        phone_valid: bot.marca,
       });
       return res.status(200).json({ ok: true, id: r.id });
     } catch (err) {
@@ -154,6 +173,120 @@ export default async function handler(req, res) {
     lastError && lastError.message
   );
   return res.status(502).json({ ok: false, error: "sheet_unavailable" });
+}
+
+/* ---- ¿Bot? -------------------------------------------------------------
+   "Bot" aquí NO quiere decir malicioso. Quiere decir **esta apertura no es un
+   cliente calificable**: nadie a quien se le pueda dar seguimiento, contar
+   como escaneo de la campaña ni comparar contra las demás tiendas.
+
+   Caen tres cosas distintas bajo la misma etiqueta, y da igual cuál sea:
+
+     · programas — el preview de WhatsApp/Facebook cuando un vendedor comparte
+       el link, monitores de uptime, escáneres, crawlers.
+     · headless — automatización que se ve como Chrome normal hasta que se le
+       pregunta por webdriver.
+     · escritorio — alguien del equipo, de oficina o de sistemas abriendo el
+       link desde una laptop. Perfectamente legítimo y aun así no es un
+       cliente: el QR está pegado en el piso de venta y se escanea con la
+       cámara de un teléfono. Una laptop nunca es un escaneo.
+
+   Marca la fila; NUNCA la rechaza. El escaneo se escribe igual y el juicio
+   queda en la hoja, mismo criterio que la clasificación del PNN: primero
+   medir cuánto llega, y ya con el dato decidir si vale la pena filtrarlo.
+
+   El veredicto se escribe en `phone_valid`, la columna que ya existe. En una
+   fila de escaneo está vacía por definición —no hay teléfono que clasificar
+   hasta que alguien envía el formulario— así que ahí cabe el juicio sobre
+   quién abrió la ficha sin estorbarle a nada. Si esa persona después sí deja
+   su número, el envío pisa la marca con "Móvil"/"Fijo"/"Inválido": la fila
+   ya es un lead y de un lead lo que importa es si el número sirve.
+
+   El piso está alto de entrada: esta ruta solo se alcanza desde el JS de la
+   ficha (sendBeacon), así que un crawler que nada más hace GET a la URL corta
+   jamás llega hasta aquí. La hoja ya está medio limpia por construcción y
+   estas reglas son para lo que sí ejecuta JavaScript.
+
+   Los pesos están para poder moverlos: la razón va completa al log de Vercel,
+   así que se recalibra mirando escaneos reales en vez de adivinar.
+   ---------------------------------------------------------------------- */
+
+// Autodeclarados. Un bot honesto se anuncia en el user-agent y con eso basta.
+const UA_BOT = /bot\b|crawler|spider|slurp|facebookexternalhit|whatsapp|telegram|slackbot|discord|twitterbot|linkedin|embedly|preview|headless|phantom|puppeteer|playwright|selenium|python-requests|curl\/|wget|axios|okhttp|java\/|go-http|lighthouse|pagespeed|gtmetrix|uptime|pingdom|monitor|scanner|semrush|ahrefs|screaming/i;
+
+// Un teléfono siempre dice cuál es en el user-agent. Que no lo diga es la
+// señal, no que diga "Windows".
+const UA_MOVIL = /android|iphone|ipad|ipod|mobile|windows phone/i;
+
+// Todo navegador de verdad —incluidos los de dentro de Facebook, Instagram o
+// WhatsApp— arrastra "Mozilla" y "AppleWebKit" o "Gecko" por herencia
+// histórica. Un user-agent que no dice ser un navegador no es una persona.
+const UA_NAVEGADOR = /mozilla|applewebkit|gecko|opera|trident/i;
+
+// Un teléfono de verdad no llega a esto ni de lejos. Una laptop lo pasa de
+// una: es el ancho de una sola señal dura.
+const CORTE = 75;
+
+const SEÑALES = [
+  /* Duras: cada una marca sola. */
+  { peso: 100, razon: "ua_bot",       test: (s) => UA_BOT.test(s.ua) },
+  { peso: 100, razon: "sin_ua",       test: (s) => !s.ua },
+  { peso: 100, razon: "no_navegador", test: (s) => s.ua && !UA_NAVEGADOR.test(s.ua) },
+  { peso: 100, razon: "webdriver",    test: (s) => s.wd === true },
+  // Basta el user-agent, sin importar de quién sea la laptop ni desde dónde
+  // entre: el QR se escanea con la cámara de un teléfono, así que una
+  // apertura desde escritorio no es un escaneo y no hay caso en que lo sea.
+  { peso: 100, razon: "escritorio",   test: (s) => s.ua && !UA_MOVIL.test(s.ua) },
+
+  /* Blandas: hacen falta dos. Sirven para el escritorio que se disfraza de
+     teléfono —un UA móvil se copia y pega, el hardware no— y para lo que el
+     user-agent no alcanza a delatar solo. */
+  // Un teléfono siempre reporta táctil. Un UA móvil sin táctil es emulación.
+  { peso: 40,  razon: "sin_touch",    test: (s) => s.tp === false },
+  { peso: 40,  razon: "sin_idioma",   test: (s) => !s.idioma },
+  // Misma idea: ninguna pantalla de teléfono es tan ancha, ni acostada.
+  { peso: 40,  razon: "pantalla_ancha", test: (s) => s.sw >= 1024 },
+  // Solo no basta: hay VPN y hay roaming, y un falso positivo aquí borraría
+  // un escaneo real. Con cualquier otra cosa al lado, sí.
+  { peso: 45,  razon: "fuera_mx",     test: (s) => s.country && s.country !== "MX" },
+];
+
+function clasificarBot(req, body) {
+  const h = req.headers || {};
+  const ua = String(h["user-agent"] || "").slice(0, 400);
+
+  const señas = {
+    ua,
+    idioma: String(h["accept-language"] || "").trim(),
+    // Lo pone Vercel en el borde; el cliente no puede tocarlo. Vacío en local
+    // y en algunos planes: vacío = sin señal, no = sospechoso.
+    country: String(h["x-vercel-ip-country"] || "").trim().toUpperCase(),
+    // Del navegador. Un bot podría mentir, pero entonces ya no es de los que
+    // esto pretende cazar.
+    wd: body.wd === true,
+    // null cuando la página no logró medirlo (Safari privado, un try que se
+    // cayó). null NO dispara `sin_touch`: no saber no es una señal.
+    tp: typeof body.tp === "boolean" ? body.tp : null,
+    sw: Number(body.sw) > 0 ? Number(body.sw) : 0,
+  };
+
+  let puntos = 0;
+  const razones = [];
+  for (const s of SEÑALES) {
+    if (s.test(señas)) {
+      puntos += s.peso;
+      razones.push(s.razon);
+    }
+  }
+
+  return {
+    // Lo que se escribe en phone_valid: "Bot" o vacío, nada más. Vacío deja
+    // la celda como estaba antes de todo esto, y quiere decir "esto sí se ve
+    // como un cliente calificable".
+    marca: puntos >= CORTE ? "Bot" : "",
+    razones,
+    ua,
+  };
 }
 
 /* ---- Apps Script ------------------------------------------------------- */

@@ -510,9 +510,35 @@ function report(datos) {
   }).catch(() => { /* ver comentario de arriba: no bloquea nada */ });
 }
 
+/* Señales de "esto lo abrió una persona con un teléfono en la mano".
+   Ninguna prueba nada sola; se pesan en api/lead.js junto con el user-agent y
+   el país, que el navegador no puede falsear tan fácil porque los pone él.
+
+   webdriver lo marca en true todo lo que maneja un programa: Puppeteer,
+   Playwright, Selenium. Es lo que delata a un headless que por lo demás se ve
+   como Chrome normal.
+
+   touch y el ancho de pantalla separan "teléfono" de "laptop". Un QR pegado en
+   el piso de venta se escanea con la cámara del celular; una apertura desde
+   escritorio es casi siempre alguien del equipo probando el link, y para el
+   conteo de escaneos eso tampoco es un cliente.
+
+   Todo va en try porque una medición no puede tumbar la ficha. */
+function señales() {
+  try {
+    return {
+      wd: navigator.webdriver === true,
+      tp: (navigator.maxTouchPoints || 0) > 0,
+      sw: (self.screen && screen.width) || 0,
+    };
+  } catch {
+    return {};
+  }
+}
+
 // Va aquí abajo y no junto a render(): `sid` es const y usarla antes
 // truena por TDZ.
-if (store && product) report({ action: "scan" });
+if (store && product) report({ action: "scan", ...señales() });
 
 function render() {
   document.title = `${product.name} — Tiendas 3B ${store.name}`;

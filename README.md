@@ -135,7 +135,7 @@ y no ofrece el formulario.
 | `scanned_at` | lo estampa Apps Script **al abrir la ficha**, zona horaria de la hoja |
 | `submitted_at` | lo estampa Apps Script **al enviar el teléfono**. Vacío = escaneó y no envió |
 | `phone` | del formulario, 10 dígitos |
-| `phone_valid` | `Móvil` / `Fijo` / `Inválido`, contra el PNN del IFT (ver abajo) |
+| `phone_valid` | en el escaneo `Bot` o vacío; en el envío `Móvil` / `Fijo` / `Inválido` (ver abajo) |
 | `store_id` / `store_name` | de `store_id` en la URL, resuelto **en el servidor** |
 | `product_id` / `product_name` | de `product_id` en la URL, resuelto **en el servidor** |
 | `utm_source` | de `utm_source` en la URL; vacío si no viene |
@@ -143,6 +143,63 @@ y no ofrece el formulario.
 | `user_input_1` | monto quincenal del botón elegido, en pesos (`810`), **recalculado en el servidor** |
 | `user_input_2` | quincenas de ese botón: 4, 8 o 12 (default 8) |
 | `session_id` | UUID que genera el navegador; es lo que amarra el escaneo con su envío |
+
+### `phone_valid` dice dos cosas según el momento
+
+En una fila de **escaneo** no hay teléfono que clasificar, así que esa celda
+lleva el juicio sobre **quién abrió la ficha**: `Bot` o vacío.
+
+> **`Bot` no quiere decir malicioso.** Quiere decir *esta apertura no es un
+> cliente calificable*: nadie a quien se le pueda dar seguimiento ni contar
+> como escaneo de la campaña. Bajo la misma etiqueta caen los crawlers, los
+> previews de WhatsApp, los monitores… y la laptop de alguien de oficina
+> abriendo el link. Lo último es perfectamente legítimo y aun así **no es un
+> escaneo**: el QR está pegado en el piso de venta y se lee con la cámara de
+> un teléfono.
+
+Lo decide `clasificarBot()` en `api/lead.js` con el user-agent, el país que
+pone Vercel en el borde (`x-vercel-ip-country`) y tres señales que manda la
+página: `navigator.webdriver`, si hay pantalla táctil y el ancho de pantalla.
+Cada señal pesa y se marca al llegar a **75**.
+
+**Duras — cada una marca sola:**
+
+| Señal | Peso |
+|---|---|
+| `ua_bot` — user-agent de bot conocido | 100 |
+| `sin_ua` — no mandó user-agent | 100 |
+| `no_navegador` — el UA no dice ser un navegador | 100 |
+| `webdriver` — `navigator.webdriver` en `true` (Puppeteer, Playwright, Selenium) | 100 |
+| `escritorio` — el UA no es de teléfono | 100 |
+
+**Blandas — hacen falta dos.** Son para el escritorio que se disfraza de
+teléfono: un user-agent móvil se copia y se pega, el hardware no.
+
+| Señal | Peso |
+|---|---|
+| `fuera_mx` — el país por IP no es México | 45 |
+| `sin_touch` — sin pantalla táctil | 40 |
+| `sin_idioma` — no mandó `accept-language` | 40 |
+| `pantalla_ancha` — 1024 px o más | 40 |
+
+Así, una Mac que se anuncia como iPhone cae por `sin_touch` + `pantalla_ancha`
+(80) aunque su user-agent esté impecable. Y un Android grande en horizontal
+(892 px, táctil, en México) **no** se marca: ninguna señal blanda sola alcanza
+el corte. Ante la duda, celda vacía — un escaneo real contado como bot es peor
+que un bot que se cuela.
+
+Si esa persona **después envía su teléfono**, el envío pisa la marca con
+`Móvil` / `Fijo` / `Inválido`: la fila ya es un lead y de un lead lo que
+importa es si el número sirve. Por eso una marca de bot solo sobrevive en las
+filas que se quedaron en escaneo — que es justo donde interesa contarla.
+
+Las razones del veredicto **no van a la hoja**, van al log de Vercel
+(`[lead] escaneo marcado: …`). Ahí se revisa una marca que no cuadre y se
+reafinan los pesos.
+
+> Las marcas empiezan el día que implementes esto. Los escaneos anteriores se
+> quedan con la celda vacía y eso significa "no se midió", **no** "es
+> persona": para comparar limpio, cuenta desde esa fecha.
 
 `utm_campaign` **no se toma del navegador**: lo pone `api/lead.js` desde la
 constante `UTM_CAMPAIGN` de `catalog.js`, para que no se pueda falsear desde
@@ -155,10 +212,11 @@ la misma función que pinta el botón: así la hoja no puede terminar con una
 cifra que la página nunca mostró. Los dos campos van como **número**, para
 poder sumarlos y promediarlos en la hoja.
 
-La fila se llena en dos momentos: `id`, `session_id`, `scanned_at` y el
-contexto (`store_*`, `product_*`, `utm_*`) los escribe el escaneo;
-`submitted_at`, `phone`, `phone_valid` y los `user_input_*` los agrega el
-envío sobre esa misma fila. El envío **nunca** reescribe lo del escaneo.
+La fila se llena en dos momentos: `id`, `session_id`, `scanned_at`, el
+contexto (`store_*`, `product_*`, `utm_*`) y la marca de bot los escribe el
+escaneo; `submitted_at`, `phone` y los `user_input_*` los agrega el envío
+sobre esa misma fila. El envío **nunca** reescribe el contexto del escaneo.
+La única celda que sí pisa es `phone_valid`, y a propósito: ver arriba.
 
 > Las columnas las crea `initSheet()`. No lo corras sobre una hoja con
 > columnas propias de seguimiento: escribe los encabezados en las primeras
@@ -234,6 +292,9 @@ hoja:
 | `Móvil` | cae en un rango asignado como CPP o MPP |
 | `Fijo` | cae en un rango asignado, pero de línea fija |
 | `Inválido` | no cae en ningún rango asignado a ninguna operadora |
+
+Estos tres valores son los del **envío**. En una fila que se quedó en escaneo
+la misma columna lleva `Bot` o vacío — ver arriba.
 
 **No rechaza nada.** El lead entra igual y el juicio queda en la hoja, para
 poder medir cuántos números malos llegan antes de decidir si vale la pena

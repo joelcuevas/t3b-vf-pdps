@@ -69,7 +69,16 @@ const FIELDS = [
   "scanned_at",    // abrió la ficha; es el escaneo del QR
   "submitted_at",  // mandó su teléfono. Vacío = escaneó y no envió
   "phone",
-  "phone_valid",   // "Móvil" / "Fijo" / "Inválido", contra el PNN del IFT
+  // Se escribe en los DOS momentos y quiere decir cosas distintas según cuál:
+  //   escaneo → "Bot" o vacío. NO es "malicioso": es "esta apertura no es un
+  //             cliente calificable". Incluye crawlers y previews, pero
+  //             también una laptop del equipo, que es legítima y aun así no
+  //             es un escaneo de QR en piso de venta.
+  //   envío   → "Móvil" / "Fijo" / "Inválido" contra el PNN del IFT, que es
+  //             el juicio sobre el TELÉFONO.
+  // El envío pisa la marca a propósito: si dejó un número, la fila ya es un
+  // lead y lo que importa saber de ella es si ese número sirve.
+  "phone_valid",
   "store_id",
   "store_name",
   "product_id",
@@ -93,6 +102,9 @@ const SCAN_FIELDS = [
   "product_name",
   "utm_source",
   "utm_campaign",
+  // Aquí lleva la marca de bot, no la del PNN: en el escaneo todavía no hay
+  // teléfono que clasificar.
+  "phone_valid",
 ];
 
 // Lo que agrega el envío sobre la fila que ya existe. NO incluye las de
