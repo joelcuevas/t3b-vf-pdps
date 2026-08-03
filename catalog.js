@@ -205,8 +205,14 @@ export const downPayment = (p, store) =>
 
    d1 es lo único que cambia entre cotizaciones: son los días entre el cálculo
    y la fecha de primer pago que elige el cliente. Publicamos el escenario
-   estándar (21 días, 12 quincenas) y el pie de página lo dice, porque el
+   estándar (14 días, 12 quincenas) y el pie de página lo dice, porque el
    número real depende de cuándo y para qué fecha se cotice.
+
+   d1 = 14 —no 21— desde el 3-ago-2026: es el offset que usa avafin de la
+   aprobación al primer pago, el mismo FIRST_OFFSET_DAYS de flows/endpoint.js.
+   Con 21 los tres botones salían inflados en préstamo × K × 7 (p. ej. +$230
+   en la clave 27386), parejo en los tres plazos porque d1 solo pesa en el
+   interés del primer periodo.
 
    El factor queda ~$0.06 por debajo del total que cobra avafin, que redondea
    periodo por periodo. Se acepta a cambio de tener una sola fórmula: la cifra
@@ -215,7 +221,7 @@ export const downPayment = (p, store) =>
 export const DAILY_RATE = 0.007;
 export const IVA_RATE = 0.16;
 export const INSTALLMENTS = 12;
-export const FIRST_PAYMENT_DAYS = 21;
+export const FIRST_PAYMENT_DAYS = 14;
 export const PERIOD_DAYS = 16;
 
 const K = DAILY_RATE * (1 + IVA_RATE);

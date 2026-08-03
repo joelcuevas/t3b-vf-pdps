@@ -487,15 +487,22 @@ crédito escrito a mano en `catalog.js`:
 
 ```
 préstamo    = cost − enganche        (= cost en Tetiz y Postes)
-pago 1 (n)  = préstamo × (1/n + K × 21)      K = 0.007 × 1.16
-total  (n)  = préstamo × (1 + K × (21 + 16 × (n−1)/2))
+pago 1 (n)  = préstamo × (1/n + K × 14)      K = 0.007 × 1.16
+total  (n)  = préstamo × (1 + K × (14 + 16 × (n−1)/2))
 ```
 
-Con n = 12 eso da los factores 0.2538533 y 1.8850800. Salen del modelo de
+Con n = 12 eso da los factores 0.1970133 y 1.8282400. Salen del modelo de
 `flows/endpoint.js` —capital = préstamo/n, interés = saldo insoluto × 0.7%
-diario × días del periodo, IVA 16%— evaluado en **21 días al primer pago**. Se
-verificó contra una tabla real de avafin (clave `30466`, préstamo 3,599, primer
-pago 18/08/2026): las 12 filas cuadran con diferencia máxima de $0.09.
+diario × días del periodo, IVA 16%— evaluado en **14 días al primer pago**. Se
+verificó contra una tabla real de avafin (clave `27386`, préstamo 4,049, 8
+quincenas, primer pago 17/08/2026): las 8 filas cuadran con diferencia máxima
+de $0.03 y el total con $0.04.
+
+> Hasta el 3-ago-2026 esto se evaluaba en **21 días**, y los tres botones
+> salían inflados en `préstamo × K × 7` —$230 en la clave `27386`, igual en
+> los tres plazos, porque `d1` solo entra en el interés del primer periodo—.
+> El offset real de la aprobación al primer pago es 14, el mismo
+> `FIRST_OFFSET_DAYS` que ya usaba `flows/endpoint.js`.
 
 Los días al primer pago (`d1`) son lo único que cambia entre cotizaciones: son
 los que hay entre el cálculo y la fecha que elige el cliente. Por eso el monto
