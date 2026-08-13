@@ -121,6 +121,52 @@ export const PRODUCTS = {
   "27386": { name: "Refrigerador 7.3 pies WWH", brand: "White Westinghouse", category: "Línea blanca",
              cost: "449900", loan: "404900", badge: "Nuevo",
              av: "Refrigerador 7.3 pies WWH" },
+
+  /* --- Nuevos 13-ago-2026. "av" es tentativo (mismo contrato que arriba).
+         loan = cost − (10% de cost redondeado hacia arriba a la decena de
+         peso más cercana), regla del owner. "Lavadora Doble Tina 15 KGS" de
+         la misma hoja se omite: clave PENDIENTE en avafin. Imágenes
+         sourced de la web el 13-ago-2026 — ver reporte de esa fecha para
+         cuáles son match exacto vs. aproximación genérica. --- */
+  "32954": { name: "Regulador de Voltaje para Refrigeradores y Lavadoras", category: "Hogar",
+             cost: "129900", loan: "116900", badge: "Nuevo",
+             av: "Regulador de Voltaje para Refrigeradores y Lavadoras" },
+
+  "33020": { name: 'Bocina Unibody Portátil TWS Triple 8"', brand: "Misik", category: "Audio",
+             cost: "129900", loan: "116900", badge: "Nuevo",
+             av: 'Bocina Unibody Portátil TWS Triple 8"' },
+
+  "33102": { name: "Horno de Microondas 1.0 ft³", category: "Cocina",
+             cost: "189900", loan: "170900", badge: "Nuevo",
+             av: "Horno de Microondas 1.0" },
+
+  "33018": { name: "Hidrolavadora K Portátil", brand: "Kärcher", category: "Hogar",
+             cost: "129900", loan: "116900", badge: "Nuevo",
+             av: "Hidrolavadora K Portátil" },
+
+  "33195": { name: "Refrigerador 7.3 Pies con Despachador de Agua", category: "Línea blanca",
+             cost: "499900", loan: "449900", badge: "Nuevo",
+             av: "Refrigerador 7.3 Pies Despachador de Agua" },
+
+  "33196": { name: "Frigobar 1.7 Pies Acero Inoxidable", category: "Línea blanca",
+             cost: "199900", loan: "179900", badge: "Nuevo",
+             av: "Frigobar 1.7 CuFt Acero Inox" },
+
+  "32561": { name: 'Pantalla 40" Roku Frameless', brand: "JVC", category: "Pantallas",
+             cost: "349900", loan: "314900", badge: "Nuevo",
+             av: 'JVC 40" Roku Frameless' },
+
+  "36681": { name: "Mini Elíptica Eléctrica con Control Remoto", category: "Fitness",
+             cost: "169900", loan: "152900", badge: "Nuevo",
+             av: "Mini Elíptica Eléctrica C/RC Función de Escaladora" },
+
+  "36682": { name: "Bicicleta Fija con Soporte para Smartphone", category: "Fitness",
+             cost: "289900", loan: "260900", badge: "Nuevo",
+             av: "Bicicleta Fija con Soporte para Smartphone y Rueda de Inercia" },
+
+  "36683": { name: "Caminadora Eléctrica con Control Remoto", category: "Fitness",
+             cost: "249900", loan: "224900", badge: "Nuevo",
+             av: "Caminadora Eléctrica C/RC" },
 };
 
 /* -------------------------------------------------------------------------
@@ -131,9 +177,10 @@ export const PRODUCTS = {
             de short.io y se acepta como store_id en la URL
      name — cómo se le muestra al cliente
 
-   Ojo: create_store_full_setup.py todavía solo conoce 9 de estas 17, y una
-   de las suyas —3330 SanBernabe2— no está en el padrón oficial (aquí es
-   888 Sanbernabe). Hay que homologar ese script también.
+   Ojo: create_store_full_setup.py homologó las 16 con enganche/sin-enganche
+   confirmado el 13-ago-2026 (falta 888 Sanbernabe, que no tiene tabla de
+   enganche confirmada). Ese script además tiene 3330 SanBernabe2, que no
+   está en este padrón — no homologado.
    ---------------------------------------------------------------------- */
 export const STORES = [
   { code: "3670", slug: "PlazaExhibimex",   name: "Plaza Exhibimex" },
@@ -155,8 +202,13 @@ export const STORES = [
   { code: "888",  slug: "Sanbernabe",       name: "San Bernabé" },
 ];
 
-/* Tetiz y Postes no cobran enganche: allá loan_amount == product_cost. */
-export const NO_DOWN_PAYMENT_STORES = new Set(["1931", "1955"]);
+/* Tiendas sin enganche: allá loan_amount == product_cost. Tetiz/Postes desde
+   siempre; las otras 6 agregadas 13-ago-2026 según la tabla de enganche del
+   owner (columna "Enganche" = NO). Espejo de SIN_ENGANCHE_CODES en
+   qrs/create_store_full_setup.py. */
+export const NO_DOWN_PAYMENT_STORES = new Set([
+  "1931", "1955", "2145", "1129", "3343", "1322", "2758", "829",
+]);
 
 /* Constante de create_store_full_setup.py (segundos de vigencia del link). */
 export const VALIDITY = "172800";
