@@ -99,15 +99,18 @@ export const PRODUCTS = {
              cost: "279900", loan: "251900", badge: "Nuevo",
              av: "MULTIESTILIZADOR UNIQ 6 PCS" },
 
-  /* --- Pendientes: falta primer pago del negocio. Los dos primeros también
-         siguen sin foto (img: false). Ver README. --- */
+  /* --- Pendientes: falta primer pago del negocio. Ver README. --- */
 
   "31618": { name: "Horno Microondas 1.5 ft³", category: "Cocina",
-             cost: "249900", loan: "224900", img: false,
+             cost: "249900", loan: "224900",
              av: "JUNS26 Horno Micro 1.5 CMKT" },
 
+  /* Mismo cost/loan que 33196 y misma descripción ("Frigobar 1.7 Acero" vs
+     "Frigobar 1.7 CuFt Acero Inox") — es el mismo modelo (Magic Chef
+     HMAR17STM, Home Depot México) cargado en dos altas distintas. Reusa la
+     foto de 33196 mientras no haya una propia. */
   "31619": { name: "Frigobar 1.7 Acero", category: "Línea blanca",
-             cost: "199900", loan: "179900", img: false,
+             cost: "199900", loan: "179900",
              av: "JUNS26 Frigobar 1.7 Acero" },
 
   "32275": { name: 'Pantalla 43" Roku Frameless', category: "Pantallas",
