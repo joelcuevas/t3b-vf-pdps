@@ -30,6 +30,10 @@
    implementación (Implementar → Gestionar implementaciones → editar → Versión:
    Nueva). Si solo guardas, la URL /exec sigue sirviendo el código viejo.
 
+   Formato de las fechas: lo fija DATE_FORMAT. Si lo cambias, corre
+   reformatDates() UNA VEZ para que las filas ya escritas también lo tomen —
+   initSheet() y migrateSheet() ya lo aplican solos.
+
    Teléfonos bloqueados: corre initBlockSheet() UNA VEZ. Crea la pestaña
    "Bloqueados" y siembra los primeros números. De ahí en adelante agregas
    números EN LA HOJA — no aquí — y aplican solos, sin implementación nueva.
@@ -40,6 +44,12 @@
 const SECRET = "PEGA_AQUI_EL_MISMO_SECRETO_QUE_EN_VERCEL";
 
 const SHEET_NAME = "Leads";
+
+// Cómo se ven —y cómo se exportan— scanned_at y submitted_at. El dato guardado
+// es un Date; esto es solo su presentación. Los tokens son los de Sheets en
+// inglés aunque la hoja esté en español: dd día, mm mes, yy año a dos cifras,
+// hh:mm hora y minuto de 24 h (mm después de hh son minutos, no meses).
+const DATE_FORMAT = "dd/mm/yy HH:mm";
 
 // Déjalo vacío si el script está DENTRO de la hoja (Extensiones → Apps Script).
 // Si lo creaste como proyecto suelto desde script.google.com, pega aquí el id
@@ -462,12 +472,21 @@ function reserveRow(sh, headers) {
 
   // Una hoja nueva trae 1000 filas y se llenan rápido cuando cada escaneo
   // escribe: setValue() más abajo de getMaxRows() revienta.
-  if (row === sh.getMaxRows() + 1) sh.insertRowsAfter(sh.getMaxRows(), 500);
+  // Las filas nuevas heredan el formato de la de arriba, pero solo cuando ésa
+  // ya lo tenía; se vuelve a aplicar para que un tramo no salga con las fechas
+  // en crudo. Es una vez cada 500 filas.
+  if (row === sh.getMaxRows() + 1) {
+    sh.insertRowsAfter(sh.getMaxRows(), 500);
+    formatDateColumns(sh);
+  }
 
   if (!cacheOk(sh, idCol, row)) {
     row = lastRowWithId(sh, idCol) + 1;
     num = lastIdNum(sh, idCol);
-    if (row > sh.getMaxRows()) sh.insertRowsAfter(sh.getMaxRows(), 500);
+    if (row > sh.getMaxRows()) {
+      sh.insertRowsAfter(sh.getMaxRows(), 500);
+      formatDateColumns(sh);
+    }
   }
 
   return { row: row, id: "L-" + String(num + 1).padStart(6, "0"), num: num + 1 };
@@ -631,15 +650,29 @@ function migrateSheet() {
 }
 
 /* Formato de fecha por NOMBRE de columna. Antes era "B:B" fijo, y con
-   scanned_at de por medio esa posición ya no es la que era. */
+   scanned_at de por medio esa posición ya no es la que era.
+
+   La celda guarda un Date de verdad; esto solo decide cómo se ve y, con ello,
+   cómo sale al exportar. Si cambias DATE_FORMAT, corre reformatDates() una vez
+   para que las filas que ya están escritas también lo tomen. */
 function formatDateColumns(sh) {
   const headers = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
   ["scanned_at", "submitted_at"].forEach(function (field) {
     const col = columnFor(headers, field);
     if (col > 0) {
-      sh.getRange(2, col, sh.getMaxRows() - 1, 1).setNumberFormat("yyyy-mm-dd hh:mm:ss");
+      sh.getRange(2, col, sh.getMaxRows() - 1, 1).setNumberFormat(DATE_FORMAT);
     }
   });
+}
+
+/* Aplica DATE_FORMAT a las dos columnas de fecha de la hoja que ya existe.
+   Correrlo de más no hace nada. */
+function reformatDates() {
+  const sh = getSS().getSheetByName(SHEET_NAME);
+  if (!sh) throw new Error("No existe la pestaña '" + SHEET_NAME + "'.");
+  formatDateColumns(sh);
+  SpreadsheetApp.flush();
+  Logger.log("scanned_at y submitted_at ahora se muestran como '%s'.", DATE_FORMAT);
 }
 
 /* La caché de fila/id se recalcula sola en la siguiente escritura. */
