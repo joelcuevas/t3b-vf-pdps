@@ -82,15 +82,20 @@
   }
   /* multiply funde el fondo blanco del JPEG con el gris de la galería. */
   .gallery .photo { width: 100%; max-width: 340px; height: auto; mix-blend-mode: multiply; }
-  .gallery .no-photo {
-    font-size: 12.5px; font-weight: 800; letter-spacing: 0.1em;
-    text-transform: uppercase; color: #b3bac6; text-align: center;
-  }
   /* Enlace inválido: no hay producto que mostrar, así que la galería se
      reduce a una franja en vez de dejar un hueco gris enorme. Se queda con
      algo de alto para que la ficha, que sube 22px, tenga sobre qué montarse
      sin comerse el header. */
   .gallery.empty { min-height: 46px; }
+
+  /* Producto válido pero sin foto todavía (SKU nuevo, aún no se sube la
+     imagen): a diferencia de .empty, aquí no queremos ni banda gris ni texto
+     de placeholder — la galería desaparece del todo y la ficha arranca
+     pegada al header. Por eso también se anula el -22px de .sheet: ese
+     salto asume que hay galería de sobra debajo para "morder"; sin galería
+     se comería el header. */
+  .gallery.none { display: none; }
+  .gallery.none + .sheet { margin-top: 0; }
 
   /* ===== FICHA ===== */
   .sheet {
@@ -253,7 +258,6 @@
     .gallery { padding: 40px 40px 32px; min-height: 540px; }
     .gallery.empty { min-height: 90px; }
     .gallery .photo { width: 620px; max-width: 100%; }
-    .gallery .no-photo { font-size: 15px; }
 
     .sheet { border-radius: 34px 34px 0 0; margin-top: -26px; padding: 42px 44px 34px; }
     .head { gap: 28px; }
@@ -543,16 +547,20 @@ if (store && product) report({ action: "scan", ...señales() });
 function render() {
   document.title = `${product.name} — Tiendas 3B ${store.name}`;
 
-  /* --- Galería --- */
+  /* --- Galería ---
+     Sin foto (ni de origen ni porque la imagen 404): la galería se oculta
+     entera (.gallery.none, ver CSS) en vez de mostrar un placeholder — la
+     ficha arranca directo bajo el header, como si la sección no existiera. */
+  const gallery = document.querySelector(".gallery");
   const photoBox = document.getElementById("photoBox");
   if (product.img === false) {
-    photoBox.innerHTML = `<div class="no-photo">${product.category}</div>`;
+    gallery.classList.add("none");
   } else {
     const im = document.createElement("img");
     im.className = "photo";
     im.src = `img/${rawProduct}.jpg`;
     im.alt = product.name;
-    im.onerror = () => { photoBox.innerHTML = `<div class="no-photo">${product.category}</div>`; };
+    im.onerror = () => { gallery.classList.add("none"); photoBox.innerHTML = ""; };
     photoBox.appendChild(im);
   }
 
