@@ -487,22 +487,30 @@ crédito escrito a mano en `catalog.js`:
 
 ```
 préstamo    = cost − enganche        (= cost en Tetiz y Postes)
-pago 1 (n)  = préstamo × (1/n + K × 14)      K = 0.007 × 1.16
-total  (n)  = préstamo × (1 + K × (14 + 16 × (n−1)/2))
+pago 1 (n)  = préstamo × (1/n + K × 16)      K = 0.007 × 1.16
+total  (n)  = préstamo × (1 + K × (16 + 16 × (n−1)/2))
 ```
 
-Con n = 12 eso da los factores 0.1970133 y 1.8282400. Salen del modelo de
-`flows/endpoint.js` —capital = préstamo/n, interés = saldo insoluto × 0.7%
-diario × días del periodo, IVA 16%— evaluado en **14 días al primer pago**. Se
-verificó contra una tabla real de avafin (clave `27386`, préstamo 4,049, 8
-quincenas, primer pago 17/08/2026): las 8 filas cuadran con diferencia máxima
-de $0.03 y el total con $0.04.
+Con n = 12 eso da los factores 0.213253... y 1.8574933... . Salen del mismo
+modelo de `flows/endpoint.js` —capital = préstamo/n, interés = saldo insoluto
+× 0.7% diario × días del periodo, IVA 16%— pero evaluado en **16 días al
+primer pago**, no en los 14 que de verdad cobra avafin (ver historial abajo).
+`d1=16` se eligió el 25-ago-2026 para que la fórmula reproduzca EXACTO
+(precisión de punto flotante) las columnas "PRIMER PAGO CON/SIN ENGANCHE" /
+"TOTAL A PAGAR" de la hoja "Calculos Enganche" del excel root en los 39 SKUs —
+el owner priorizó que el número coincida con el excel por encima de que
+coincida con lo que avafin cobra en la práctica.
 
 > Hasta el 3-ago-2026 esto se evaluaba en **21 días**, y los tres botones
 > salían inflados en `préstamo × K × 7` —$230 en la clave `27386`, igual en
 > los tres plazos, porque `d1` solo entra en el interés del primer periodo—.
-> El offset real de la aprobación al primer pago es 14, el mismo
-> `FIRST_OFFSET_DAYS` que ya usaba `flows/endpoint.js`.
+> El offset real de la aprobación al primer pago es 14 (`FIRST_OFFSET_DAYS`
+> en `flows/endpoint.js`), y del 3-ago al 24-ago-2026 el modelo usó ese valor,
+> verificado contra una tabla real de avafin (clave `27386`, préstamo 4,049, 8
+> quincenas, primer pago 17/08/2026: las 8 filas cuadraban con diferencia
+> máxima de $0.03 y el total con $0.04). Desde el 25-ago-2026 se recalibró a
+> `d1=16` para coincidir con el excel en vez de con avafin — ver el modelo de
+> negocio en la memoria del proyecto.
 
 Los días al primer pago (`d1`) son lo único que cambia entre cotizaciones: son
 los que hay entre el cálculo y la fecha que elige el cliente. Por eso el monto
@@ -514,8 +522,10 @@ carátula, y de ese lado el error nunca juega en contra del cliente.
 > por debajo** de lo que cobra avafin, con tres celdas peor todavía (`30995`
 > −62%). Derivarlas es lo que evita que se vuelva a desfasar.
 
-El factor queda ~$0.06 abajo del total de avafin, que redondea periodo por
-periodo. Se acepta a cambio de tener una sola fórmula.
+Contra el excel (el objetivo de calibración desde el 25-ago-2026) el factor
+coincide exacto. Contra avafin real (que redondea periodo por periodo y usa
+`d1=14`, no 16) el total queda más arriba que antes — ya no se puede acotar en
+~$0.06 como cuando `d1=14` estaba calibrado contra avafin directamente.
 
 ## Riesgo asumido
 

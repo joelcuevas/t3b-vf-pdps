@@ -12,11 +12,14 @@
      cost       — product_cost en centavos  → precio de contado
      loan       — loan_amount con-enganche en centavos
                   enganche = (cost − loan) / 100
-     av         — product_name EXACTO que espera avafin. No es el nombre que
-                  se muestra: avafin lo usa para identificar el producto junto
-                  con product_key + store_name. Si no coincide, el redirect
-                  da error. No lo "corrijas" aunque tenga erratas o espacios
-                  de más — así está registrado del otro lado.
+     av         — product_name que se manda a avafin. No es el nombre que se
+                  muestra al cliente. Se forma normalizando la descripción de
+                  la hoja fuente (mayúsculas/acentos correctos); avafin no
+                  guarda un catálogo propio contra el cual emparejar, así que
+                  no es una clave que deba coincidir con algo registrado del
+                  otro lado. No lo "corrijas" sin necesidad — los productos
+                  dados de alta antes del 13-ago-2026 quedaron como calco
+                  literal de la hoja, erratas y espacios de más incluidos.
      name       — nombre que ve el cliente
      img        — false mientras no exista img/{clave}.jpg
      specs      — chips de ficha técnica del mock. Sin esto se cae a un chip
@@ -24,84 +27,84 @@
    ======================================================================== */
 
 export const PRODUCTS = {
-  "30553": { name: "Colchón Pillow Individual", category: "Colchones",
+  "30553": { name: "Colchón Pillow Ind", category: "Colchones",
              cost: "139900", loan: "111900", av: "Colchón Pillow Ind" },
 
-  "30552": { name: "Colchón Pillow Matrimonial", category: "Colchones",
+  "30552": { name: "Colchón Pillon Mat", category: "Colchones",
              cost: "179900", loan: "143900", av: "Colchón Pillon Mat" },
 
-  "30555": { name: "Colchón Individual en Caja", category: "Colchones",
+  "30555": { name: "Colchón Ind en Caja 17Cm 37 x 37 x 110 cms", category: "Colchones",
              cost: "199900", loan: "169900", av: "Colchón Ind en Caja 17Cm 37 x 37 x 110 cms" },
 
-  "30554": { name: "Colchón Matrimonial en Caja", category: "Colchones",
+  "30554": { name: "Colchón Mat en Caja 17Cm 37 x 37 x 110 cms", category: "Colchones",
              cost: "259900", loan: "233900", av: "Colchón Mat en Caja 17Cm 37 x 37 x 110 cms" },
 
-  "30782": { name: 'Asador Compact 18"', brand: "Weber", category: "Cocina",
+  "30782": { name: 'Asador Weber Compact 18"', brand: "Weber", category: "Cocina",
              cost: "179900", loan: "143900", av: 'Asador Weber Compact 18"' },
 
-  "30664": { name: "Batería 20 piezas", brand: "T-fal", category: "Cocina",
+  "30664": { name: "Batería  TFAL 20 piezas,", brand: "T-fal", category: "Cocina",
              cost: "199900", loan: "169900", av: "Batería  TFAL 20 piezas," },
 
-  "30665": { name: "Batería 26 piezas", brand: "T-fal", category: "Cocina",
+  "30665": { name: "Batería TFAL 26 piezas", brand: "T-fal", category: "Cocina",
              cost: "179900", loan: "152900", av: "Batería TFAL 26 piezas" },
 
-  "30690": { name: "Hidrolavadora K2 Horizontal", brand: "Kärcher", category: "Hogar",
+  "30690": { name: "Karcher K2 horizontal", brand: "Kärcher", category: "Hogar",
              cost: "149900", loan: "119900", badge: "Más vendido",
              av: "Karcher K2 horizontal" },
 
-  "30680": { name: 'Pantalla Smart 32" Roku', brand: "Hisense", category: "Pantallas",
+  "30680": { name: 'Pantalla Smart 32" Hisense Roku', brand: "Hisense", category: "Pantallas",
              cost: "249900", loan: "224900", badge: "Más vendido",
              av: 'Pantalla Smart 32" Hisense Roku' },
 
-  "30742": { name: "Horno de Microondas Panasonic 1.3 ft³ Negro", brand: "Panasonic", category: "Cocina",
+  "30742": { name: "Horno de Microondas Panasonic 1.3 ft", brand: "Panasonic", category: "Cocina",
              cost: "219900", loan: "191300", badge: "Más vendido",
              av: "Horno de Microondas Panasonic 1.3 ft ",
              specs: [{ icon: "bolt", text: "1100 W" },
                      { icon: "box", text: "1.3 ft³ · 36.8 L" },
                      { icon: "color", text: "Negro espejo" }] },
 
-  "30743": { name: 'ONE BODY 15"', brand: "STF", category: "Cómputo",
+  "30743": { name: 'BOCINA ONE BODY 15" STF', brand: "STF", category: "Cómputo",
              cost: "269900", loan: "229400", av: 'ONE BODY 15" STF' },
 
-  "30688": { name: "Generador de Vapor Express Essential", brand: "T-fal", category: "Hogar",
+  "30688": { name: "PLANCHA Express Essential Blue", brand: "T-fal", category: "Hogar",
              cost: "179900", loan: "152900", av: "Express Essential Blue" },
 
-  "30744": { name: "Refrigerador 7.3 pies", brand: "White Westinghouse", category: "Línea blanca",
+  "30744": { name: "Refrigerador 7.3 pies White Westinghouse", brand: "White Westinghouse", category: "Línea blanca",
              cost: "659900", loan: "626900", av: "Refrigerador 7.3 pies White Westinghouse" },
 
-  "27385": { name: "Lavadora Semiautomática 15 kg", brand: "White Westinghouse", category: "Línea blanca",
+  "27385": { name: "Lavadora Semiautomática White Westinghouse 15Kg", brand: "White Westinghouse", category: "Línea blanca",
              cost: "399900", loan: "359900", av: "Lavadora Semiautomática White Westinghouse 15Kg" },
 
-  "30466": { name: "Estufa 4 quemadores a gas", brand: "Acros", category: "Línea blanca",
+  "30466": { name: "Estufa Acros 4 quemadores a gas", brand: "Acros", category: "Línea blanca",
              cost: "399900", loan: "359900", av: "Estufa Acros 4 quemadores a gas" },
 
-  "29744": { name: "Bicicleta Eléctrica", category: "Transporte",
+  "29744": { name: "BICICLETA ELECTRICA", category: "Transporte",
              cost: "599900", loan: "539900", badge: "Nuevo",
              av: "BICICLETA ELECTRICA" },
 
-  "31007": { name: "Hielera con llantas 47 latas 57 L", brand: "Coleman", category: "Hogar",
+  "31007": { name: "HIELERA CON LLANTAS 47 LATAS 57L COLEMAN", brand: "Coleman", category: "Hogar",
              cost: "159900", loan: "143900", badge: "Nuevo",
              av: "HIELERA CON LLANTAS 47 LATAS 57L COLEMAN" },
 
-  "31336": { name: 'Pantalla Smart 32"', brand: "Hisense", category: "Pantallas",
+  "31336": { name: 'PANTALLA HISENSE SMART 32"', brand: "Hisense", category: "Pantallas",
              cost: "249900", loan: "224900", badge: "Más vendido",
              av: 'PANTALLA HISENSE SMART 32"' },
 
-  "30995": { name: "Freidora Digital 7.5 L", brand: "Oster", category: "Cocina",
+  "30995": { name: "FREIDORA DIGITAL 7.5L OSTER", brand: "Oster", category: "Cocina",
              cost: "149900", loan: "134900", badge: "Nuevo",
              av: "FREIDORA DIGITAL 7.5L OSTER" },
 
-  "30996": { name: "Asador Smokey Joe", brand: "Weber", category: "Cocina",
+  "30996": { name: "ASADOR WEBER SMOKEY JOE", brand: "Weber", category: "Cocina",
              cost: "159900", loan: "143900", badge: "Nuevo",
              av: "ASADOR WEBER SMOKEY JOE" },
 
-  "31361": { name: "Multiestilizador 6 pzas", brand: "UNIQ", category: "Hogar",
+  "31361": { name: "MULTIESTILIZADOR UNIQ 6 PCS", brand: "UNIQ", category: "Hogar",
              cost: "279900", loan: "251900", badge: "Nuevo",
              av: "MULTIESTILIZADOR UNIQ 6 PCS" },
 
   /* --- Pendientes: falta primer pago del negocio. Ver README. --- */
 
-  "31618": { name: "Horno Microondas 1.5 ft³", category: "Cocina",
+  "31618": { name: "Horno de Microondas 1.5 White-Westinghouse", category: "Cocina",
              cost: "249900", loan: "224900",
              av: "JUNS26 Horno Micro 1.5 CMKT" },
 
@@ -109,19 +112,19 @@ export const PRODUCTS = {
      "Frigobar 1.7 CuFt Acero Inox") — es el mismo modelo (Magic Chef
      HMAR17STM, Home Depot México) cargado en dos altas distintas. Reusa la
      foto de 33196 mientras no haya una propia. */
-  "31619": { name: "Frigobar 1.7 Acero", category: "Línea blanca",
+  "31619": { name: "Frigobar 1.7 Acero Inox JVC", category: "Línea blanca",
              cost: "199900", loan: "179900",
              av: "JUNS26 Frigobar 1.7 Acero" },
 
-  "32275": { name: 'Pantalla 43" Roku Frameless', category: "Pantallas",
+  "32275": { name: "43'' JV Roku Frameless", category: "Pantallas",
              cost: "369900", loan: "332900", badge: "Nuevo",
              av: 'Pantalla 43" JV Roku Frameless' },
 
-  "32633": { name: "Curl Secret Rizador", category: "Hogar",
+  "32633": { name: "Curl secret rizador", category: "Hogar",
              cost: "159900", loan: "143900", badge: "Nuevo",
              av: "Curl Secret Rizador" },
 
-  "27386": { name: "Refrigerador 7.3 pies WWH", brand: "White Westinghouse", category: "Línea blanca",
+  "27386": { name: "Refrigerador 7.3 pies wwh ", brand: "White Westinghouse", category: "Línea blanca",
              cost: "449900", loan: "404900", badge: "Nuevo",
              av: "Refrigerador 7.3 pies WWH" },
 
@@ -131,45 +134,112 @@ export const PRODUCTS = {
          la misma hoja se omite: clave PENDIENTE en avafin. Imágenes
          sourced de la web el 13-ago-2026 — ver reporte de esa fecha para
          cuáles son match exacto vs. aproximación genérica. --- */
-  "32954": { name: "Regulador de Voltaje para Refrigeradores y Lavadoras", category: "Hogar",
+  "32954": { name: "Regulador de voltaje para refrigeradores y lavadoras", category: "Hogar",
              cost: "129900", loan: "116900", badge: "Nuevo",
              av: "Regulador de Voltaje para Refrigeradores y Lavadoras" },
 
-  "33020": { name: 'Bocina Unibody Portátil TWS Triple 8"', brand: "Misik", category: "Audio",
+  "33020": { name: 'UNIBODY PORTATIL TWS TRIPLE 8"', brand: "Misik", category: "Audio",
              cost: "129900", loan: "116900", badge: "Nuevo",
              av: 'Bocina Unibody Portátil TWS Triple 8"' },
 
-  "33102": { name: "Horno de Microondas 1.0 ft³", category: "Cocina",
+  "33102": { name: "HORNO DE MICROONDAS 1.0", category: "Cocina",
              cost: "189900", loan: "170900", badge: "Nuevo",
              av: "Horno de Microondas 1.0" },
 
-  "33018": { name: "Hidrolavadora K Portátil", brand: "Kärcher", category: "Hogar",
+  "33018": { name: "HIDROLAVADORA K PORTATIL", brand: "Kärcher", category: "Hogar",
              cost: "129900", loan: "116900", badge: "Nuevo",
              av: "Hidrolavadora K Portátil" },
 
-  "33195": { name: "Refrigerador 7.3 Pies con Despachador de Agua", category: "Línea blanca",
+  "33195": { name: "Refrigerador 7.3 pies despachador de agua ", category: "Línea blanca",
              cost: "499900", loan: "449900", badge: "Nuevo",
              av: "Refrigerador 7.3 Pies Despachador de Agua" },
 
-  "33196": { name: "Frigobar 1.7 Pies Acero Inoxidable", category: "Línea blanca",
+  "33196": { name: "Frigobar 1.7 cuft acero inox", category: "Línea blanca",
              cost: "199900", loan: "179900", badge: "Nuevo",
              av: "Frigobar 1.7 CuFt Acero Inox" },
 
-  "32561": { name: 'Pantalla 40" Roku Frameless', brand: "JVC", category: "Pantallas",
+  "32561": { name: "JVC 40'' Roku Framless ", brand: "JVC", category: "Pantallas",
              cost: "349900", loan: "314900", badge: "Nuevo",
              av: 'JVC 40" Roku Frameless' },
 
-  "36681": { name: "Mini Elíptica Eléctrica con Control Remoto", category: "Fitness",
+  "36681": { name: "MINI ELIPTICA ELECTRICA C/RC FUNCION DE ESCALADORA ", category: "Fitness",
              cost: "169900", loan: "152900", badge: "Nuevo",
              av: "Mini Elíptica Eléctrica C/RC Función de Escaladora" },
 
-  "36682": { name: "Bicicleta Fija con Soporte para Smartphone", category: "Fitness",
+  "36682": { name: "BICICLETA FIJA  SPORTE PARA SMARTPHONE RUEDA DE INERCIA 8KG ", category: "Fitness",
              cost: "289900", loan: "260900", badge: "Nuevo",
              av: "Bicicleta Fija con Soporte para Smartphone y Rueda de Inercia" },
 
-  "36683": { name: "Caminadora Eléctrica con Control Remoto", category: "Fitness",
+  "36683": { name: "CAMINADORA ELECTRICA C/RC", category: "Fitness",
              cost: "249900", loan: "224900", badge: "Nuevo",
              av: "Caminadora Eléctrica C/RC" },
+
+  /* --- Nuevos 24-ago-2026, homologados desde "18082026 - articulos Venta
+         Financiada.xlsx" (hoja Calculos Enganche, fuente de verdad). Sin
+         imagen todavía (img/{clave}.jpg no existe, cae a placeholder). --- */
+  "33277": { name: "T-fal Batería de Cocina Supercook Titanium 23 Piezas, Antiadherente Reforzado con Titanio", brand: "T-fal", category: "Cocina",
+             cost: "179900", loan: "152900", badge: "Nuevo",
+             av: "Batería T-fal Supercook Titanium 23 Piezas" },
+
+  "33417": { name: "HORNO MICROONDAS WESTING HOUSE 1.5FT ", brand: "White Westinghouse", category: "Cocina",
+             cost: "279900", loan: "251900", badge: "Nuevo",
+             av: "Horno de Microondas Westinghouse 1.5 ft" },
+
+  "33248": { name: "LAVADORA DOBLE TINA 15 KGS", category: "Línea blanca",
+             cost: "449900", loan: "404900", badge: "Nuevo",
+             av: "Lavadora Doble Tina 15 KGS" },
+
+  /* --- Nuevos 25-ago-2026, homologados desde "25082026 - articulos Venta
+         Financiada.xlsx" (hoja Calculos Enganche, fuente de verdad). Sin
+         imagen todavía (img/{clave}.jpg no existe, cae a placeholder).
+         category inferida (el excel no trae columna de categoría) — revisar. --- */
+  "33348": { name: "Licuadora Wave", category: "Cocina",
+             cost: "69900", loan: "64900", badge: "Nuevo",
+             av: "Licuadora Wave" },
+
+  "32330": { name: "Licuadora roja 800w", category: "Cocina",
+             cost: "55900", loan: "50900", badge: "Nuevo",
+             av: "Licuadora roja 800w" },
+
+  "33103": { name: "HORNO DE MICROONDAS 0.9", category: "Cocina",
+             cost: "174900", loan: "147900", badge: "Nuevo",
+             av: "Horno de Microondas 0.9" },
+
+  "33360": { name: "ASPIRADORA 3 EN 1 LUCKY", category: "Hogar",
+             cost: "59900", loan: "54900", badge: "Nuevo",
+             av: "Aspiradora 3 en 1 Lucky" },
+
+  "32963": { name: "Plancha Elegance Led Titan Keratin Bvt", category: "Hogar",
+             cost: "59900", loan: "54900", badge: "Nuevo",
+             av: "Plancha Elegance Led Titan Keratin Bvt" },
+
+  "32964": { name: "Cepillo H Mod  Avocado Power Brush 3D 110", category: "Hogar",
+             cost: "69900", loan: "64900", badge: "Nuevo",
+             av: "Cepillo H Mod Avocado Power Brush 3D 110" },
+
+  "32965": { name: "Máquina cortadora ", category: "Hogar",
+             cost: "59900", loan: "54900", badge: "Nuevo",
+             av: "Máquina cortadora" },
+
+  "33021": { name: "Licuadora Portatil de doble aspa", category: "Cocina",
+             cost: "59900", loan: "54900", badge: "Nuevo",
+             av: "Licuadora Portatil de doble aspa" },
+
+  "33422": { name: "Procesador de alimentos ", category: "Cocina",
+             cost: "55900", loan: "50900", badge: "Nuevo",
+             av: "Procesador de alimentos" },
+
+  "33423": { name: "Batidora de pedestal RCA", brand: "RCA", category: "Cocina",
+             cost: "59900", loan: "54900", badge: "Nuevo",
+             av: "Batidora de pedestal RCA" },
+
+  "33425": { name: "Refrigerador mini RCA", brand: "RCA", category: "Línea blanca",
+             cost: "119900", loan: "107900", badge: "Nuevo",
+             av: "Refrigerador mini RCA" },
+
+  "33491": { name: "Parrilla Hibrida", category: "Cocina",
+             cost: "69900", loan: "64900", badge: "Nuevo",
+             av: "Parrilla Hibrida" },
 };
 
 /* -------------------------------------------------------------------------
@@ -249,8 +319,7 @@ export const downPayment = (p, store) =>
    -------------------------------------------------------------------------
    Mismo modelo que calcAmortizacion() en flows/endpoint.js: capital =
    préstamo/n, interés = saldo insoluto × 0.7% diario × días del periodo, IVA
-   16% sobre el interés. Verificado 28-jul-2026 contra una tabla real de avafin
-   (clave 30466, préstamo 3599, 12 parcialidades, primer pago 18/08/2026).
+   16% sobre el interés.
 
    Como el capital es fijo y el saldo baja parejo, las dos cifras publicadas
    son lineales en el préstamo y se reducen a un factor cada una:
@@ -258,25 +327,24 @@ export const downPayment = (p, store) =>
      primer pago = préstamo × (1/n + K × d1)
      total       = préstamo × (1 + K × (d1 + PERIODO × (n−1)/2))
 
-   d1 es lo único que cambia entre cotizaciones: son los días entre el cálculo
-   y la fecha de primer pago que elige el cliente. Publicamos el escenario
-   estándar (14 días, 12 quincenas) y el pie de página lo dice, porque el
-   número real depende de cuándo y para qué fecha se cotice.
+   d1 = 16 (25-ago-2026, decisión del owner: usar el dato duro del excel como
+   fuente para todo). El excel ("Calculos Enganche" del xlsx raíz) trae sus
+   propias columnas PRIMER PAGO / TOTAL A PAGAR ya calculadas para n=12;
+   verificado que esta fórmula con d1=16 las reproduce EXACTO (a nivel de
+   precisión de punto flotante, las 39 filas) — por eso d1=16 y no un valor
+   independiente. El PDP también cotiza n=8 y n=4 (selector de plazos), para
+   los que el excel no trae columna — no queda otra que extender la misma
+   fórmula ya calibrada contra el excel, ver [[primerpago-vs-amortizacion]].
 
-   d1 = 14 —no 21— desde el 3-ago-2026: es el offset que usa avafin de la
-   aprobación al primer pago, el mismo FIRST_OFFSET_DAYS de flows/endpoint.js.
-   Con 21 los tres botones salían inflados en préstamo × K × 7 (p. ej. +$230
-   en la clave 27386), parejo en los tres plazos porque d1 solo pesa en el
-   interés del primer periodo.
-
-   El factor queda ~$0.06 por debajo del total que cobra avafin, que redondea
-   periodo por periodo. Se acepta a cambio de tener una sola fórmula: la cifra
-   es de referencia, no la carátula del crédito.
+   Nota histórica: antes (3-ago a 24-ago-2026) usaba d1=14, verificado 28-jul
+   contra una tabla real de avafin (clave 30466) — ese valor NO coincide con
+   las columnas del excel (implica d1=16). El owner priorizó el dato duro del
+   excel sobre la verificación de avafin.
    ---------------------------------------------------------------------- */
 export const DAILY_RATE = 0.007;
 export const IVA_RATE = 0.16;
 export const INSTALLMENTS = 12;
-export const FIRST_PAYMENT_DAYS = 14;
+export const FIRST_PAYMENT_DAYS = 16;
 export const PERIOD_DAYS = 16;
 
 const K = DAILY_RATE * (1 + IVA_RATE);
