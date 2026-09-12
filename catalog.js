@@ -76,14 +76,14 @@ export const PRODUCTS = {
              cost: "399900", loan: "359900", av: "Lavadora Semiautomática White Westinghouse 15Kg" },
 
   "30466": { name: "Estufa Acros 4 quemadores a gas", brand: "Acros", category: "Línea blanca",
-             cost: "399900", loan: "359900", av: "Estufa Acros 4 quemadores a gas" },
+             cost: "299900", loan: "259900", av: "Estufa Acros 4 quemadores a gas" },
 
   "29744": { name: "BICICLETA ELECTRICA", category: "Transporte",
              cost: "599900", loan: "539900", badge: "Nuevo",
              av: "BICICLETA ELECTRICA" },
 
   "31007": { name: "HIELERA CON LLANTAS 47 LATAS 57L COLEMAN", brand: "Coleman", category: "Hogar",
-             cost: "159900", loan: "143900", badge: "Nuevo",
+             cost: "99900", loan: "83900", badge: "Nuevo",
              av: "HIELERA CON LLANTAS 47 LATAS 57L COLEMAN" },
 
   "31336": { name: 'PANTALLA HISENSE SMART 32"', brand: "Hisense", category: "Pantallas",
@@ -113,7 +113,7 @@ export const PRODUCTS = {
      HMAR17STM, Home Depot México) cargado en dos altas distintas. Reusa la
      foto de 33196 mientras no haya una propia. */
   "31619": { name: "Frigobar 1.7 Acero Inox JVC", category: "Línea blanca",
-             cost: "199900", loan: "179900",
+             cost: "199900", loan: "169900",
              av: "JUNS26 Frigobar 1.7 Acero" },
 
   "32275": { name: "43'' JV Roku Frameless", category: "Pantallas",
@@ -155,7 +155,7 @@ export const PRODUCTS = {
              av: "Refrigerador 7.3 Pies Despachador de Agua" },
 
   "33196": { name: "Frigobar 1.7 cuft acero inox", category: "Línea blanca",
-             cost: "199900", loan: "179900", badge: "Nuevo",
+             cost: "199900", loan: "169900", badge: "Nuevo",
              av: "Frigobar 1.7 CuFt Acero Inox" },
 
   "32561": { name: "JVC 40'' Roku Framless ", brand: "JVC", category: "Pantallas",
@@ -240,6 +240,90 @@ export const PRODUCTS = {
   "33491": { name: "Parrilla Hibrida", category: "Cocina",
              cost: "69900", loan: "64900", badge: "Nuevo",
              av: "Parrilla Hibrida" },
+
+  "33327": { name: "ASPIRADORA FOTIGG 15 L FOREMAN", category: "Hogar",
+             cost: "69900", loan: "64900", badge: "Nuevo",
+             av: "Aspiradora Fotigg 15 L Foreman" },
+
+  "33338": { name: 'Bafle Bluetooth 2X 8" Bt2028 Select Sound', category: "Audio",
+             cost: "139900", loan: "126900", badge: "Nuevo",
+             av: 'Bafle Bluetooth 2X 8" Bt2028 Select Sound' },
+
+  "33339": { name: "Bocina Portátil Bt Boom Pro Bt1001", category: "Audio",
+             cost: "179900", loan: "152900", badge: "Nuevo",
+             av: "Bocina Portátil Bt Boom Pro Bt1001" },
+
+  "33449": { name: 'Pantalla Smart TV 50" FHD QLED', category: "Pantallas",
+             cost: "499900", loan: "474900", badge: "Nuevo",
+             av: 'Pantalla Smart TV 50" FHD QLED' },
+
+  "33450": { name: "Barras de Sonido 80w", category: "Audio",
+             cost: "69900", loan: "64900", badge: "Nuevo",
+             av: "Barras de Sonido 80w" },
+
+  "32212": { name: "Aspiradora Echo Canister", category: "Hogar",
+             cost: "86900", loan: "78900", badge: "Nuevo",
+             av: "Aspiradora Echo Canister" },
+
+  "32632": { name: "Mini Refri Blanco", category: "Línea blanca",
+             cost: "54900", loan: "49900", badge: "Nuevo",
+             av: "Mini Refri Blanco" },
+
+  "32634": { name: "Tenaza Triple Conair", brand: "Conair", category: "Hogar",
+             cost: "99900", loan: "90900", badge: "Nuevo",
+             av: "Tenaza Triple Conair" },
+
+  "33648": { name: "Freidora", category: "Cocina",
+             cost: "99900", loan: "90900", badge: "Nuevo",
+             av: "Freidora" },
+
+  "33651": { name: "Jade Electro Freidora de aire digital 9L", brand: "Jade Electro", category: "Cocina",
+             cost: "188900", loan: "161900", badge: "Nuevo",
+             av: "Jade Electro Freidora de Aire Digital 9L" },
+
+  "33652": { name: "Jade Electro Horno con freidora de aire 30L", brand: "Jade Electro", category: "Cocina",
+             cost: "256900", loan: "231900", badge: "Nuevo",
+             av: "Jade Electro Horno con Freidora de Aire 30L" },
+
+  "33247": { name: "Horno + Freidora de Aire 30L", category: "Cocina",
+             cost: "239900", loan: "214900", badge: "Nuevo",
+             av: "Horno + Freidora de Aire 30L" },
+
+  "33372": { name: "COMBO BEAUTY GLAM PINK", category: "Hogar",
+             cost: "49900", loan: "44900", badge: "Nuevo",
+             av: "Combo Beauty Glam Pink" },
+
+  "29358": { name: 'Pantalla 40" Daewoo Roku FHD frameless', brand: "Daewoo", category: "Pantallas",
+             cost: "299900", loan: "274900", badge: "Nuevo",
+             av: 'Pantalla 40" Daewoo Roku FHD frameless' },
+
+  "27426": { name: "Refrigerador 7.3 F wwh  CON dispensador de agua 2 puertas", brand: "White Westinghouse", category: "Línea blanca",
+             cost: "449900", loan: "424900", badge: "Nuevo",
+             av: "Refrigerador 7.3 F wwh CON dispensador de agua 2 puertas" },
+
+  "24714": { name: "Procedador de alimentos", category: "Cocina",
+             cost: "55900", loan: "50900", badge: "Nuevo",
+             av: "Procedador de alimentos" },
+
+  "32113": { name: "Parrilla multiusos 4 en 1", category: "Cocina",
+             cost: "99900", loan: "94900", badge: "Nuevo",
+             av: "Parrilla multiusos 4 en 1" },
+
+  "29963": { name: "Freidora de ire 2.8 L", category: "Cocina",
+             cost: "59900", loan: "54900", badge: "Nuevo",
+             av: "Freidora de ire 2.8 L" },
+
+  "27746": { name: "Freidora 2 litros", category: "Cocina",
+             cost: "69900", loan: "64900", badge: "Nuevo",
+             av: "Freidora 2 litros" },
+
+  "33246": { name: "Horno + Freidora de Aire 25L", category: "Cocina",
+             cost: "199900", loan: "182900", badge: "Nuevo",
+             av: "Horno + Freidora de Aire 25L" },
+
+  "30745": { name: "Aspiradora Karcher WDL1 s", brand: "Kärcher", category: "Hogar",
+             cost: "84900", loan: "79900", badge: "Nuevo",
+             av: "Aspiradora Karcher WDL1 s" },
 };
 
 /* -------------------------------------------------------------------------
@@ -283,8 +367,9 @@ export const NO_DOWN_PAYMENT_STORES = new Set([
   "1931", "1955", "2145", "1129", "3343", "1322", "2758", "829",
 ]);
 
-/* Constante de create_store_full_setup.py (segundos de vigencia del link). */
-export const VALIDITY = "172800";
+/* Constante de create_store_full_setup.py (segundos de vigencia del link).
+   5 días desde el 09-sep-2026 (antes 172800 = 48h), a pedido del owner. */
+export const VALIDITY = "432000";
 
 /* Identifica ESTA variante de landing en los reportes. No viene de la URL: lo
    pone el servidor, para que no se pueda falsear desde el navegador. Cuando
