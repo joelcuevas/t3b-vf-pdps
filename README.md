@@ -5,7 +5,7 @@ una hoja privada de Google Sheets. **No hay base de datos.**
 
 ```
 QR / campaña
-   └─ /?store_id=3670&product_id=30742&utm_source=whatsapp
+   └─ /?store_id=3670&product_id=30466&utm_source=whatsapp
         └─ index.html   render del producto + precios de esa tienda
              │           sid = crypto.randomUUID()   ← amarra las dos escrituras
              ├─ al cargar:  POST /api/lead {action:"scan", sid}
@@ -88,10 +88,10 @@ QR impresos:
 
 ```
 https://www.avafin.com.mx/tiendas
-  ?product_key=30742
-  &product_name=Horno+de+Microondas+Panasonic+1.3+ft+   ← nombre crudo de avafin
-  &product_cost=219900                                  ← centavos
-  &loan_amount=191300                                   ← centavos; == cost si la tienda es sin-enganche
+  ?product_key=30466
+  &product_name=Estufa+Acros+4+quemadores+a+gas         ← nombre crudo de avafin
+  &product_cost=299900                                  ← centavos
+  &loan_amount=259900                                   ← centavos; == cost si la tienda es sin-enganche
   &validity=172800
   &store_name=3670                                      ← el código, no el slug
 ```
@@ -117,7 +117,7 @@ navegación.
 | Parámetro | Obligatorio | Formato |
 |---|---|---|
 | `store_id` | sí | id oficial (`3670`) o nombre oficial (`PlazaExhibimex`), indistinto |
-| `product_id` | sí | clave del producto (`30742`) |
+| `product_id` | sí | clave del producto (`30466`) |
 | `utm_source` | no | texto libre, se recorta a 120 caracteres |
 
 Si `store_id` o `product_id` no existen, la página muestra "Enlace no válido"
@@ -459,7 +459,7 @@ escalar para que las dos salgan del mismo tamaño.
 - **Fotos de 2 productos** (`31618`, `31619`): falta
   `img/{clave}.jpg`, se muestra un placeholder con la categoría.
 - **Fichas técnicas**: el mock muestra chips reales del producto (`1100 W`,
-  `1.3 ft³ · 36.8 L`, `Negro espejo`). Solo `30742` los tiene cargados, en el
+  `1.3 ft³ · 36.8 L`, `Negro espejo`). Ningún producto los tiene cargados ya en el
   campo `specs` del catálogo; para igualar el mock en los 26 productos hace
   falta esa hoja de especificaciones. La variante actual de la ficha **no
   dibuja chips** (ver abajo), así que `specs` está inactivo por ahora.
@@ -519,7 +519,7 @@ carátula, y de ese lado el error nunca juega en contra del cliente.
 
 > Antes estas cifras se capturaban a mano desde una hoja del negocio. Esa hoja
 > venía de una corrida con `d1= 19`, así que **todo lo publicado estaba 6.8%
-> por debajo** de lo que cobra avafin, con tres celdas peor todavía (`30995`
+> por debajo** de lo que cobra avafin, con tres celdas peor todavía (hasta
 > −62%). Derivarlas es lo que evita que se vuelva a desfasar.
 
 Contra el excel (el objetivo de calibración desde el 25-ago-2026) el factor
@@ -567,7 +567,7 @@ Sin dependencias y sin cuenta de Vercel. `dev-server.js` ejecuta el mismo
 
 ```
 npm run dev
-open "http://localhost:3000/?store_id=3670&product_id=30742&utm_source=prueba"
+open "http://localhost:3000/?store_id=3670&product_id=30466&utm_source=prueba"
 ```
 
 **Modo real** — escribe en la hoja de verdad. Crea `.env.local` (ignorado por
@@ -586,10 +586,10 @@ URLs útiles para revisar los tres casos que se ven distinto:
 
 | Caso | URL |
 |---|---|
-| Normal, con foto y precio | `/?store_id=3670&product_id=30742` |
+| Normal, con foto y precio | `/?store_id=3670&product_id=30466` |
 | Sin foto (placeholder de categoría) | `/?store_id=3670&product_id=31619` |
 | Tienda sin enganche | `/?store_id=Tetiz&product_id=30553` |
-| Enlace roto | `/?store_id=9999&product_id=30742` |
+| Enlace roto | `/?store_id=9999&product_id=30466` |
 
 En modo stub el servidor imprime cada petición. El stub guarda las filas en
 memoria y deduplica por sesión igual que Apps Script, así que verás las dos
@@ -601,7 +601,7 @@ Para comprobar que repetir no duplica, manda la misma sesión dos veces:
 
 ```
 SID=11111111-2222-3333-4444-555555555555
-P='"store_id":"3670","product_id":"30742"'
+P='"store_id":"3670","product_id":"30466"'
 for i in 1 2; do
   curl -s -X POST localhost:3000/api/lead -H 'content-type: application/json' \
     -d "{\"action\":\"scan\",\"sid\":\"$SID\",$P}"; echo

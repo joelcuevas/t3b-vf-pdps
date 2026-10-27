@@ -52,35 +52,11 @@ export const PRODUCTS = {
              cost: "149900", loan: "119900", badge: "Más vendido",
              av: "Karcher K2 horizontal" },
 
-  "30680": { name: 'Pantalla Smart 32" Hisense Roku', brand: "Hisense", category: "Pantallas",
-             cost: "249900", loan: "224900", badge: "Más vendido",
-             av: 'Pantalla Smart 32" Hisense Roku' },
-
-  "30742": { name: "Horno de Microondas Panasonic 1.3 ft", brand: "Panasonic", category: "Cocina",
-             cost: "219900", loan: "191300", badge: "Más vendido",
-             av: "Horno de Microondas Panasonic 1.3 ft ",
-             specs: [{ icon: "bolt", text: "1100 W" },
-                     { icon: "box", text: "1.3 ft³ · 36.8 L" },
-                     { icon: "color", text: "Negro espejo" }] },
-
   "30743": { name: 'BOCINA ONE BODY 15" STF', brand: "STF", category: "Cómputo",
              cost: "269900", loan: "229400", av: 'ONE BODY 15" STF' },
 
-  "30688": { name: "PLANCHA Express Essential Blue", brand: "T-fal", category: "Hogar",
-             cost: "179900", loan: "152900", av: "Express Essential Blue" },
-
-  "30744": { name: "Refrigerador 7.3 pies White Westinghouse", brand: "White Westinghouse", category: "Línea blanca",
-             cost: "659900", loan: "626900", av: "Refrigerador 7.3 pies White Westinghouse" },
-
-  "27385": { name: "Lavadora Semiautomática White Westinghouse 15Kg", brand: "White Westinghouse", category: "Línea blanca",
-             cost: "399900", loan: "359900", av: "Lavadora Semiautomática White Westinghouse 15Kg" },
-
   "30466": { name: "Estufa Acros 4 quemadores a gas", brand: "Acros", category: "Línea blanca",
              cost: "299900", loan: "259900", av: "Estufa Acros 4 quemadores a gas" },
-
-  "29744": { name: "BICICLETA ELECTRICA", category: "Transporte",
-             cost: "599900", loan: "539900", badge: "Nuevo",
-             av: "BICICLETA ELECTRICA" },
 
   "31007": { name: "HIELERA CON LLANTAS 47 LATAS 57L COLEMAN", brand: "Coleman", category: "Hogar",
              cost: "99900", loan: "83900", badge: "Nuevo",
@@ -89,10 +65,6 @@ export const PRODUCTS = {
   "31336": { name: 'PANTALLA HISENSE SMART 32"', brand: "Hisense", category: "Pantallas",
              cost: "249900", loan: "224900", badge: "Más vendido",
              av: 'PANTALLA HISENSE SMART 32"' },
-
-  "30995": { name: "FREIDORA DIGITAL 7.5L OSTER", brand: "Oster", category: "Cocina",
-             cost: "149900", loan: "134900", badge: "Nuevo",
-             av: "FREIDORA DIGITAL 7.5L OSTER" },
 
   "30996": { name: "ASADOR WEBER SMOKEY JOE", brand: "Weber", category: "Cocina",
              cost: "159900", loan: "143900", badge: "Nuevo",
@@ -293,14 +265,6 @@ export const PRODUCTS = {
              cost: "49900", loan: "44900", badge: "Nuevo",
              av: "Combo Beauty Glam Pink" },
 
-  "29358": { name: 'Pantalla 40" Daewoo Roku FHD frameless', brand: "Daewoo", category: "Pantallas",
-             cost: "299900", loan: "274900", badge: "Nuevo",
-             av: 'Pantalla 40" Daewoo Roku FHD frameless' },
-
-  "27426": { name: "Refrigerador 7.3 F wwh  CON dispensador de agua 2 puertas", brand: "White Westinghouse", category: "Línea blanca",
-             cost: "449900", loan: "424900", badge: "Nuevo",
-             av: "Refrigerador 7.3 F wwh CON dispensador de agua 2 puertas" },
-
   "24714": { name: "Procedador de alimentos", category: "Cocina",
              cost: "55900", loan: "50900", badge: "Nuevo",
              av: "Procedador de alimentos" },
@@ -321,9 +285,45 @@ export const PRODUCTS = {
              cost: "199900", loan: "182900", badge: "Nuevo",
              av: "Horno + Freidora de Aire 25L" },
 
-  "30745": { name: "Aspiradora Karcher WDL1 s", brand: "Kärcher", category: "Hogar",
-             cost: "84900", loan: "79900", badge: "Nuevo",
-             av: "Aspiradora Karcher WDL1 s" },
+  /* --- Nuevos 27-oct-2026, homologados desde "28092026 - articulos Venta
+         Financiada.xlsx" (hoja Calculos Enganche, filas 65-73; loan = C − D).
+         Sin foto todavía: img: false oculta la galería sin pedir el .jpg
+         (quitarlo al subir img/{clave}.jpg). category inferida — revisar. --- */
+  "27747": { name: "URNA PARA CAFE ELECTRICA", category: "Cocina",
+             cost: "79900", loan: "71900", badge: "Nuevo", img: false,
+             av: "Urna para Café Eléctrica" },
+
+  "33438": { name: "Licuadora Wave 1.4L 700w", category: "Cocina",
+             cost: "69900", loan: "62900", badge: "Nuevo", img: false,
+             av: "Licuadora Wave 1.4L 700w" },
+
+  "33821": { name: "FRIGOBAR 48 LATAS 1.7 ACERO INOX", category: "Línea blanca",
+             cost: "199900", loan: "179900", badge: "Nuevo", img: false,
+             av: "Frigobar 48 Latas 1.7 Acero Inox" },
+
+  "32834": { name: "Licuadora 1.5L, 2vel, 800w azul", category: "Cocina",
+             cost: "55900", loan: "50300", badge: "Nuevo", img: false,
+             av: "Licuadora 1.5L, 2vel, 800w azul" },
+
+  "32835": { name: "Horno convección 15 L", category: "Cocina",
+             cost: "119900", loan: "107900", badge: "Nuevo", img: false,
+             av: "Horno convección 15 L" },
+
+  "33822": { name: "HORNO MICROONDAS WESTING HOUSE 1.5FT", brand: "White Westinghouse", category: "Cocina",
+             cost: "259900", loan: "233900", badge: "Nuevo", img: false,
+             av: "Horno de Microondas Westinghouse 1.5 ft" },
+
+  "33823": { name: "LAVADORA DOBLE TINA 15 KGS", category: "Línea blanca",
+             cost: "429900", loan: "386900", badge: "Nuevo", img: false,
+             av: "Lavadora Doble Tina 15 KGS" },
+
+  "33824": { name: "Refrigerador 2 puertas defrost 7.3 cuft", category: "Línea blanca",
+             cost: "499900", loan: "449900", badge: "Nuevo", img: false,
+             av: "Refrigerador 2 Puertas Defrost 7.3 CuFt" },
+
+  "33825": { name: "Estilizador Multiple, cuenta con 5 accesorios: 1 Concentrador de Aire, 1 Cepillo de aire voluminizador, 2 rizadores, Difusor de Aire para rizos.", category: "Hogar",
+             cost: "79900", loan: "71900", badge: "Nuevo", img: false,
+             av: "Estilizador Múltiple con 5 Accesorios" },
 };
 
 /* -------------------------------------------------------------------------

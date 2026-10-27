@@ -109,7 +109,7 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  const example = `http://localhost:${PORT}/?store_id=3670&product_id=30742&utm=prueba`;
+  const example = `http://localhost:${PORT}/?store_id=3670&product_id=30466&utm=prueba`;
   console.log(`\n  t3b-vf-pdps  ·  ${STUB ? "MODO STUB (no escribe en Google)" : "MODO REAL (escribe en tu hoja)"}`);
   console.log(`\n  ${example}\n`);
 });
